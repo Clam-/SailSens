@@ -66,7 +66,7 @@ void setup(void)
  
   // this line is particularly required for Flora, but is a good idea
   // anyways for the super long lines ahead!
-  ble.setInterCharWriteDelay(5); // 5 ms
+//  ble.setInterCharWriteDelay(5); // 5 ms
  
  
   /* Add the Custom GATT Service definition */
@@ -79,7 +79,6 @@ void setup(void)
  
   /* Add the Readable/Notifiable characteristic - */
   /* Characteristic ID should be 1 */
-  /* 0x00FF00 == RGB HEX of GREEN */
   Serial.println(F("Adding the Notifiable characteristic: "));
   success = ble.sendCommandWithIntReply( F("AT+GATTADDCHAR=UUID128=4A-A5-D0-B1-D4-DF-40-11-A1-84-13-C8-4E-8C-74-04,PROPERTIES=0x12,MIN_LEN=18, MAX_LEN=18, VALUE=0x00FF00"), &gattNotifiableCharId);
     if (! success) {
@@ -87,9 +86,9 @@ void setup(void)
   }
   
   /* Add the Custom GATT Service to the advertising data */
-  //0x1312 from AT+GATTLIST - 16 bit svc id
-  //Serial.print(F("Adding Custom GATT Service UUID to the advertising payload: "));
-  //ble.sendCommandCheckOK( F("AT+GAPSETADVDATA=02-01-06-03-02-12-13") );
+  //0x2DD3 from AT+GATTLIST - 16 bit svc id (reverse, starting at 3rd byte of service UUID)
+  Serial.print(F("Adding Custom GATT Service UUID to the advertising payload: "));
+  ble.sendCommandCheckOK( F("AT+GAPSETADVDATA=02-01-06-03-02-D3-2D") );
  
   /* Reset the device for the new service setting changes to take effect */
   Serial.print(F("Performing a SW reset (service changes require a reset): "));
