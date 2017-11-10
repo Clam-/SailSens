@@ -80,11 +80,16 @@ void setup(void)
   /* Add the Readable/Notifiable characteristic - */
   /* Characteristic ID should be 1 */
   Serial.println(F("Adding the Notifiable characteristic: "));
-  success = ble.sendCommandWithIntReply( F("AT+GATTADDCHAR=UUID128=4A-A5-D0-B1-D4-DF-40-11-A1-84-13-C8-4E-8C-74-04,PROPERTIES=0x12,MIN_LEN=18, MAX_LEN=18, VALUE=0x00FF00"), &gattNotifiableCharId);
+  success = ble.sendCommandWithIntReply( F("AT+GATTADDCHAR=UUID128=4A-A5-D0-B1-D4-DF-40-11-A1-84-13-C8-4E-8C-74-04,PROPERTIES=0x12,MIN_LEN=1, MAX_LEN=18, VALUE=55, DATATYPE=3, DESCRIPTION=sensor"), &gattNotifiableCharId);
     if (! success) {
     error(F("Could not add Custom Notifiable characteristic"));
   }
-  
+
+   Serial.println(F("Adding the Notifiable characteristic 2: "));
+  success = ble.sendCommandWithIntReply( F("AT+GATTADDCHAR=UUID128=EE-2E-A7-46-18-7E-41-B2-B9-98-71-8A-9C-3F-7A-8B,PROPERTIES=0x12,MIN_LEN=1, MAX_LEN=18, VALUE=55, DATATYPE=3, DESCRIPTION=sensor2"), &gattNotifiableCharId);
+    if (! success) {
+    error(F("Could not add Custom Notifiable characteristic"));
+  }
   /* Add the Custom GATT Service to the advertising data */
   //0x2DD3 from AT+GATTLIST - 16 bit svc id (reverse, starting at 3rd byte of service UUID)
   Serial.print(F("Adding Custom GATT Service UUID to the advertising payload: "));
