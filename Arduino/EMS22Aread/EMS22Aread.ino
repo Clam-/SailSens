@@ -1,15 +1,15 @@
 // Encoder 1
-const int ENC1_CS = 2;
-const int ENC1_CLOCK = 3;
-const int ENC1_DATA = 5;
+const int ENC1_CS = 5; // Blue
+const int ENC1_CLOCK = 2; //Green
+const int ENC1_DATA = 3; //Yellow
 // Encoder 2
-const int ENC1_CS = 6;
-const int ENC1_CLOCK = 9;
-const int ENC1_DATA = 10;
+const int ENC2_CS = 10;
+const int ENC2_CLOCK = 6;
+const int ENC2_DATA = 9;
 // Encoder 3
-const int ENC1_CS = 11;
-const int ENC1_CLOCK = 12;
-const int ENC1_DATA = 13;
+const int ENC3_CS = 13;
+const int ENC3_CLOCK = 11;
+const int ENC3_DATA = 12;
 
 const float STEP = 0.35294;
 
@@ -50,7 +50,7 @@ int readEncoder(int csPin, int clkPin, int dPin) {
 
 //byte stream[16];
 void loop() {
-  Serial.print(readEncoder(ENC1_CS, ENC1_CLOCK, ENC1_DATA)*STEP); 
+  Serial.print(readEncoder(ENC1_CS, ENC1_CLOCK, ENC1_DATA)); 
   Serial.print("\t"); 
   Serial.print(readEncoder(ENC2_CS, ENC2_CLOCK, ENC2_DATA)*STEP); 
   Serial.print("\t"); 
