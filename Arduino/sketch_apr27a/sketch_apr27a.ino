@@ -80,7 +80,7 @@ void setup()
      These byte formats are already defined in the Arduino global name space. 
   */
   
-  modbus_configure(&Serial1, 9600, SERIAL_8N2, 1, 5, HOLDING_REGS_SIZE, holdingRegs);
+  modbus_configure(&Serial, 9600, SERIAL_8N2, 1, 5, HOLDING_REGS_SIZE, holdingRegs);
 
   // modbus_update_comms(baud, byteFormat, id) is not needed but allows for easy update of the
   // port variables and slave id dynamically in any function.
