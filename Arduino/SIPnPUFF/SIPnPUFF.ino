@@ -28,31 +28,37 @@ void setup() {
   Gamepad.begin();
 }
 
-void checkButton(int pin)
-{
-  if (digitalRead(pin))
-      Gamepad.release(pin-8);
-  else
-    Gamepad.press(pin-8);
-}
-
 void loop() {
   if (digitalRead(SIP) && digitalRead(PUFF))
     XACCEL = 0;
-  if (!digitalRead(SIP))
-    XACCEL -= 15;
-  if (!digitalRead(PUFF))
-    XACCEL += 15;
+  if (!digitalRead(SIP)) {
+    if (XACCEL == 0) { XACCEL = -25;}
+    XACCEL = floor(XACCEL * 1.4);
+    XACCEL = max(-5000, XACCEL);
+  }
+  if (!digitalRead(PUFF)) {
+    if (XACCEL == 0) { XACCEL = 25; }
+    XACCEL = ceil(XACCEL * 1.4);
+    XACCEL = min(5000, XACCEL);
+  }
 
   if (digitalRead(SIPPLUS) && digitalRead(PUFFPLUS))
     YACCEL = 0;  
-  if (!digitalRead(SIPPLUS))
-    YACCEL -= 15;
-  if (!digitalRead(PUFFPLUS))
-    YACCEL += 15;
+  if (!digitalRead(SIPPLUS)) {
+    if (YACCEL == 0) { YACCEL = -25; }
+    YACCEL = ceil(YACCEL * 1.4);
+  }
+  if (!digitalRead(PUFFPLUS)) {
+    if (YACCEL == 0) { YACCEL = 25; }
+    YACCEL = ceil(YACCEL * 1.4);
+  }
 
   XAXIS += XACCEL;
+  if (XAXIS >= 0) { XAXIS = min(32766, XAXIS);} 
+  else { XAXIS = max(-32766, XAXIS); }
   YAXIS += YACCEL;
+  if (YAXIS >= 0) { YAXIS = min(32766, YAXIS);} 
+  else { YAXIS = max(-32766, YAXIS); }
   // Move x/y Axis to a new position (16bit)
   Gamepad.xAxis(XAXIS);
   Gamepad.yAxis(YAXIS);
@@ -65,7 +71,7 @@ void loop() {
   Serial.print(XAXIS);
   Serial.print(" XACC: ");
   Serial.print(XACCEL);
-  Serial.print("Y: ");
+  Serial.print("      Y: ");
   Serial.print(YAXIS);
   Serial.print("YACC: ");
   Serial.println(YACCEL);

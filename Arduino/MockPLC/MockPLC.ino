@@ -1,7 +1,7 @@
 #include <Wire.h>
 
-#include <Modbus.h>
-#include <ModbusSerial.h>
+//#include <Modbus.h>
+//#include <ModbusSerial.h>
 // https://github.com/epsilonrt/modbus-arduino
 
 #include <Adafruit_MCP4725.h>
@@ -9,15 +9,19 @@
 Adafruit_MCP4725 DAC1;
 Adafruit_MCP4725 DAC2;
 
+unsigned long t1 = 0;
+unsigned long t2 = 0;
+int ops = 0;
+
 // Modbus config
 #define SLAVE_ID   1
 const int SPIN_STATUS = 1; // 12129
-const int RAM1_REG    = 20; // 40641
-const int RAM2_REG    = 30; // 40642
-const int MAINSH_REG  = 40; // 400643
-const int TILL_REG    = 50; // 40644
-const int HEEL_REG    = 60; // 40645
-ModbusSerial mb;
+const int RAM1_REG    = 641; // 40641
+const int RAM2_REG    = 642; // 40642
+const int MAINSH_REG  = 643; // 400643
+const int TILL_REG    = 644; // 40644
+const int HEEL_REG    = 645; // 40645
+//ModbusSerial mb;
 
 // Encoder 1
 const int ENC1_CS = 4;      // Blue
@@ -26,15 +30,15 @@ const int ENC1_CLOCK = 2;   // Yellow
 const int ENC1_LEDZ = 14;     // A0 LED Zeroing
 const int ENC1_LEDA = 15;     // A1 LED Activity (mod 2)
 // Encoder 2
-const int ENC2_CS = 5;     // Blue
+const int ENC2_CS = 7;     // Blue
 const int ENC2_DATA = 6;    // Orange
-const int ENC2_CLOCK = 7;   // Yellow
+const int ENC2_CLOCK = 5;   // Yellow
 const int ENC2_LEDZ = 16;     // A2 LED Zeroing
 const int ENC2_LEDA = 17;     // A3 LED Activity (mod 2)
 // Encoder 3
-const int ENC3_CS = 8;     // Blue
+const int ENC3_CS = 10;     // Blue
 const int ENC3_DATA = 9;   // Orange
-const int ENC3_CLOCK = 10;  // Yellow
+const int ENC3_CLOCK = 8;  // Yellow
 const int ENC3_LEDZ = 18;     // A4 LED Zeroing
 const int ENC3_LEDA = 19;     // A5 LED Activity (mod 2)
 
@@ -42,8 +46,8 @@ const int SPIN = 13;        // Spinnaker
 
 const float STEP = 0.35294;
 
-int RAM[] = {0,4095};
-int RAMinc[] = {0, -1};
+//int RAM[] = {0,4095};
+//int RAMinc[] = {0, -1};
 
 void initEnc(int csPin, int clkPin, int dPin) {
   pinMode(csPin, OUTPUT);
@@ -58,14 +62,14 @@ void setup() {
   Serial.println("Connected "); 
 
   //Serial1.begin(38400);
-  mb.config(&Serial1, 9600, MB_PARITY_NONE);
-  mb.setSlaveId(SLAVE_ID);
-  mb.addIsts(SPIN_STATUS, false);
-  mb.addHreg(RAM1_REG);
-  mb.addHreg(RAM2_REG);
-  mb.addHreg(MAINSH_REG);
-  mb.addHreg(TILL_REG);
-  mb.addHreg(HEEL_REG);
+  //mb.config(&Serial, 9600, MB_PARITY_NONE);
+//  mb.setSlaveId(SLAVE_ID);
+//  mb.addIsts(SPIN_STATUS, false);
+//  mb.addHreg(RAM1_REG);
+//  mb.addHreg(RAM2_REG);
+//  mb.addHreg(MAINSH_REG);
+//  mb.addHreg(TILL_REG);
+//  mb.addHreg(HEEL_REG);
   
    
   // For Adafruit MCP4725A1 the address is 0x62 (default) or 0x63 (ADDR pin tied to VCC)
@@ -108,14 +112,8 @@ int readEncoder(int csPin, int clkPin, int dPin) {
   return pos;
 }
 
-void incRAM(int index) {
-  if (RAM[index] > 4094) { RAMinc[index] = -1; }
-  if (RAM[index] < 1) { RAMinc[index] = +1; }
-  RAM[index] = RAM[index] + RAMinc[index];
-}
-
 void processLED(int enc, int LEDA, int LEDZ){
-  if ((enc %5) == 0)
+  if ((enc & B00001100) > 0)
     digitalWrite(LEDA, HIGH);
   else
     digitalWrite(LEDA, LOW);
@@ -125,18 +123,31 @@ void processLED(int enc, int LEDA, int LEDZ){
     digitalWrite(LEDZ, LOW);
 }
 
-//byte stream[16];
+void printOps() {
+  t1 = millis();
+  if (t1 > t2) {
+    t2 = t1 + 1000;
+    Serial.print("Ops: "); Serial.println(ops);
+    ops = 0;
+  }
+  ops += 1;
+}
+
 void loop() {
-  mb.task();
+  //mb.task();
   
   int enc1 = readEncoder(ENC1_CS, ENC1_CLOCK, ENC1_DATA);
   int enc2 = readEncoder(ENC2_CS, ENC2_CLOCK, ENC2_DATA);
   int enc3 = readEncoder(ENC3_CS, ENC3_CLOCK, ENC3_DATA);
 
-  DAC1.setVoltage(mb.Hreg(RAM1_REG), false);
-  DAC2.setVoltage(mb.Hreg(RAM1_REG), false);
-  incRAM(0);
-  incRAM(1);
+//  Serial.print("Enc1: "); Serial.print((enc1& B00000110) > 0); Serial.print("Enc2: "); 
+//  Serial.print((enc2 & B00001110) > 0); Serial.print("Enc3: "); Serial.println((enc3 & B00001100) > 0);
+
+  
+//  DAC1.setVoltage(mb.Hreg(RAM1_REG), false);
+//  DAC2.setVoltage(mb.Hreg(RAM1_REG), false);
+//  incRAM(0);
+//  incRAM(1);
 
   // LED update
   processLED(enc1, ENC1_LEDA, ENC1_LEDZ);
@@ -144,8 +155,10 @@ void loop() {
   processLED(enc3, ENC3_LEDA, ENC3_LEDZ);
     
   // set modbus data
-  mb.Ists(SPIN_STATUS, digitalRead(SPIN));
-  mb.Hreg(MAINSH_REG, enc1);
-  mb.Hreg(TILL_REG, enc2);
-  mb.Hreg(HEEL_REG, enc3);
+//  mb.Ists(SPIN_STATUS, digitalRead(SPIN));
+//  mb.Hreg(MAINSH_REG, enc1);
+//  mb.Hreg(TILL_REG, enc2);
+//  mb.Hreg(HEEL_REG, enc3);
+
+  //printOps
 }
