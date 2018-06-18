@@ -4,9 +4,10 @@
 #include <HID-Settings.h>
 
 #define SIP 5
-#define PUFF 6
-#define SIPPLUS 4
+#define PUFF 4
+#define SIPPLUS 6
 #define PUFFPLUS 3
+#define RESETSW 2
 
 long XAXIS = 0;
 long XACCEL = 0;
@@ -18,7 +19,9 @@ void setup() {
   pinMode(PUFF, INPUT_PULLUP);
   pinMode(SIPPLUS, INPUT_PULLUP);
   pinMode(PUFFPLUS, INPUT_PULLUP);
-  delay(1);  // Give this transition time to "settle"
+  pinMode(RESETSW, INPUT_PULLUP);
+  
+  delay(10);  // Give this transition time to "settle"
   // Get the initial state of the Opto-isolator output
   digitalRead(SIP);
   digitalRead(PUFF);
@@ -46,13 +49,15 @@ void loop() {
     YACCEL = 0;  
   if (!digitalRead(SIPPLUS)) {
     if (YACCEL == 0) { YACCEL = -25; }
-    YACCEL = ceil(YACCEL * 1.4);
+    YACCEL = floor(YACCEL * 1.4);
+    YACCEL = max(-5000, YACCEL);
   }
   if (!digitalRead(PUFFPLUS)) {
     if (YACCEL == 0) { YACCEL = 25; }
     YACCEL = ceil(YACCEL * 1.4);
+    YACCEL = min(5000, YACCEL);
   }
-
+  
   XAXIS += XACCEL;
   if (XAXIS >= 0) { XAXIS = min(32766, XAXIS);} 
   else { XAXIS = max(-32766, XAXIS); }
@@ -60,6 +65,15 @@ void loop() {
   if (YAXIS >= 0) { YAXIS = min(32766, YAXIS);} 
   else { YAXIS = max(-32766, YAXIS); }
   // Move x/y Axis to a new position (16bit)
+
+  //Handel Reset Switch
+  if (!digitalRead(RESETSW)) {
+    XACCEL = 0;
+    YACCEL = 0;
+    XAXIS = 0;
+    YAXIS = 0;
+    return;
+  }
   Gamepad.xAxis(XAXIS);
   Gamepad.yAxis(YAXIS);
   
@@ -76,6 +90,5 @@ void loop() {
   Serial.print("YACC: ");
   Serial.println(YACCEL);
   
-  // Simple debounce
-  delay(80);
+  delay(20);
 }
