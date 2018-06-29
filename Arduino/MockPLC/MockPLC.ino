@@ -24,26 +24,26 @@ const int TILL_REG    = 643; // 40644
 const int HEEL_REG    = 644; // 40645
 ModbusSerial mb;
 
-// Encoder 1
+// Encoder 1  MainSheet
 const int ENC1_CS = 4;      // Blue
 const int ENC1_DATA = 3;    // Orange
 const int ENC1_CLOCK = 2;   // Yellow
 const int ENC1_LEDZ = A0;     // A0 LED Zeroing
 const int ENC1_LEDA = A1;     // A1 LED Activity
-// Encoder 2
+// Encoder 2  Rudder
 const int ENC2_CS = 7;     // Blue
 const int ENC2_DATA = 6;    // Orange
 const int ENC2_CLOCK = 5;   // Yellow
 const int ENC2_LEDZ = A2;     // A2 LED Zeroing
 const int ENC2_LEDA = A3;     // A3 LED Activity
-// Encoder 3
+// Encoder 3  Heel
 const int ENC3_CS = 10;     // Blue
 const int ENC3_DATA = 9;   // Orange
 const int ENC3_CLOCK = 8;  // Yellow
 const int ENC3_LEDZ = A4;     // A4 LED Zeroing
 const int ENC3_LEDA = A5;     // A5 LED Activity
 
-const int SPIN = 13;        // Spinnaker
+const int SPIN = 11;        // Spinnaker
 
 const float STEP = 0.35294;
 
