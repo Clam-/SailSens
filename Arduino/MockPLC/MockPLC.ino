@@ -1,3 +1,4 @@
+//#define DEBUG
 #include <Wire.h>
 
 #include <Modbus.h>
@@ -22,7 +23,9 @@ const int RAM2_REG    = 641; // 40642
 const int MAINSH_REG  = 642; // 400643
 const int TILL_REG    = 643; // 40644
 const int HEEL_REG    = 644; // 40645
+#ifndef DEBUG
 ModbusSerial mb;
+#endif
 
 // Encoder 1  MainSheet
 const int ENC1_CS = 4;      // Blue
@@ -59,9 +62,10 @@ void initEnc(int csPin, int clkPin, int dPin) {
 }
 
 void setup() {
-  //Serial.begin(9600);
-  //Serial.println("Connected "); 
-
+#ifdef DEBUG
+  Serial.begin(9600);
+  Serial.println("Connected "); 
+#else
   mb.config(&SerialUSB, 38400); //SERIAL_8N1
   mb.setSlaveId(SLAVE_ID);
   mb.addIsts(SPIN_STATUS, false);
@@ -72,7 +76,7 @@ void setup() {
   mb.addIreg(HEEL_REG);
   mb.addIreg(0);
   mb.addIreg(1);  
-  
+#endif
    
   // For Adafruit MCP4725A1 the address is 0x62 (default) or 0x63 (ADDR pin tied to VCC)
   // For MCP4725A0 the address is 0x60 or 0x61
@@ -136,7 +140,9 @@ void printOps() {
 }
 
 void loop() {
+#ifndef DEBUG
   mb.task();
+#endif
   
   int enc1 = readEncoder(ENC1_CS, ENC1_CLOCK, ENC1_DATA);
   int enc2 = readEncoder(ENC2_CS, ENC2_CLOCK, ENC2_DATA);
@@ -145,22 +151,28 @@ void loop() {
 //  Serial.print("Enc1: "); Serial.print((enc1& B00000110) > 0); Serial.print("Enc2: "); 
 //  Serial.print((enc2 & B00001110) > 0); Serial.print("Enc3: "); Serial.println((enc3 & B00001100) > 0);
 
-  
+#ifndef DEBUG
+  //normal code  
   exDAC1.setVoltage(mb.Hreg(RAM1_REG), false);
   exDAC2.setVoltage(mb.Hreg(RAM2_REG), false);
-//  incRAM(0);
-//  incRAM(1);
+#else
+  // debug DAC code
+
+#endif
 
   // LED update
   processLED(enc1, ENC1_LEDA, ENC1_LEDZ);
   processLED(enc2, ENC2_LEDA, ENC2_LEDZ);
   processLED(enc3, ENC3_LEDA, ENC3_LEDZ);
-    
+
+#ifdef DEBUG
+  Serial.print("Spin: ");Serial.println(digitalRead(SPIN));  
+#else
   // set modbus data
   mb.Ists(SPIN_STATUS, digitalRead(SPIN));
   mb.Ireg(MAINSH_REG, enc1);
   mb.Ireg(TILL_REG, enc2);
   mb.Ireg(HEEL_REG, enc3);
-
+#endif
   //printOps
 }

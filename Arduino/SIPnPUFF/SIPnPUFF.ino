@@ -104,5 +104,5 @@ void loop() {
   Serial.print("YACC: ");
   Serial.println(YACCEL);
   
-  delay(20); // Could perhaps do without delay, but then acceleration rate value may need to be too low.
+  delay(40); // Could perhaps do without delay, but then acceleration rate value may need to be too low.
 }
