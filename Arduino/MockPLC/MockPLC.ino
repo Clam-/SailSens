@@ -1,4 +1,6 @@
 //#define DEBUG
+//#define SERIALOUT
+
 #include <Wire.h>
 
 #include <Modbus.h>
@@ -18,8 +20,8 @@ int ops = 0;
 #define SLAVE_ID   1
 // Offsets are actually -1 from CAS Modbus Scanner
 const int SPIN_STATUS = 2128; // 12129
-const int RAM1_REG    = 640; // 40641
-const int RAM2_REG    = 641; // 40642
+const int RAM1_REG    = 641; // 40641
+const int RAM2_REG    = 640; // 40642
 const int MAINSH_REG  = 642; // 400643
 const int TILL_REG    = 643; // 40644
 const int HEEL_REG    = 644; // 40645
@@ -62,10 +64,11 @@ void initEnc(int csPin, int clkPin, int dPin) {
 }
 
 void setup() {
-#ifdef DEBUG
-  Serial.begin(9600);
-  Serial.println("Connected "); 
-#else
+#ifdef SERIALOUT
+  Serial1.begin(9600);
+  Serial1.println("Connected "); 
+#endif
+#ifndef DEBUG
   mb.config(&SerialUSB, 38400); //SERIAL_8N1
   mb.setSlaveId(SLAVE_ID);
   mb.addIsts(SPIN_STATUS, false);
@@ -83,6 +86,9 @@ void setup() {
   // For MCP4725A2 the address is 0x64 or 0x65
   exDAC1.begin(0x62);
   exDAC2.begin(0x63);
+
+  exDAC1.setVoltage(0, true);
+  exDAC2.setVoltage(0, true);
   
   initEnc(ENC1_CS, ENC1_CLOCK, ENC1_DATA); // Init Encoder 1
   initEnc(ENC2_CS, ENC2_CLOCK, ENC2_DATA); // Init Encoder 2
@@ -151,6 +157,9 @@ void loop() {
 //  Serial.print("Enc1: "); Serial.print((enc1& B00000110) > 0); Serial.print("Enc2: "); 
 //  Serial.print((enc2 & B00001110) > 0); Serial.print("Enc3: "); Serial.println((enc3 & B00001100) > 0);
 
+#ifdef SERIALOUT
+  Serial1.print("RAM1:"); Serial1.print(mb.Hreg(RAM1_REG)); Serial1.print("  RAM2:"); Serial1.println(mb.Hreg(RAM2_REG)); 
+#endif
 #ifndef DEBUG
   //normal code  
   exDAC1.setVoltage(mb.Hreg(RAM1_REG), false);
