@@ -1,5 +1,6 @@
 //#define DEBUG
 //#define SERIALOUT
+#define MONITOR
 
 #include <Wire.h>
 
@@ -68,6 +69,10 @@ void setup() {
   Serial1.begin(9600);
   Serial1.println("Connected "); 
 #endif
+#ifdef MONITOR
+  Serial2.begin(38400);
+#endif
+
 #ifndef DEBUG
   mb.config(&SerialUSB, 38400); //SERIAL_8N1
   mb.setSlaveId(SLAVE_ID);
@@ -160,6 +165,11 @@ void loop() {
 #ifdef SERIALOUT
   Serial1.print("RAM1:"); Serial1.print(mb.Hreg(RAM1_REG)); Serial1.print("  RAM2:"); Serial1.println(mb.Hreg(RAM2_REG)); 
 #endif
+#ifdef MONITOR
+  Serial2.print(enc1); Serial2.print(" "); Serial2.print(enc2); Serial2.print(" "); Serial2.print(enc3); Serial2.print(" "); 
+  Serial2.print(mb.Hreg(RAM1_REG)); Serial2.print(" "); Serial2.println(mb.Hreg(RAM2_REG)); 
+#endif
+
 #ifndef DEBUG
   //normal code  
   exDAC1.setVoltage(mb.Hreg(RAM1_REG), false);
