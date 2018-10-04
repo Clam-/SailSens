@@ -1,0 +1,138 @@
+﻿<Window x:Class="SensorDisplay.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gauge="clr-namespace:WpfGauge;assembly=WpfGauge"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="720" Width="1024">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="0.5*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+        <TextBox Grid.Row="0" Name="Log"/>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="1" Content="Heel" HorizontalAlignment="Center" FontSize="16" VerticalAlignment="Top"/>
+            <Label Grid.Column="2" Content="Ram1" HorizontalAlignment="Center" FontSize="16" VerticalAlignment="Top"/>
+            <Label Grid.Column="3" Content="Sheet" HorizontalAlignment="Center" FontSize="16" VerticalAlignment="Top"/>
+            <Label Grid.Column="4" Content="Ram2" HorizontalAlignment="Center" FontSize="16" VerticalAlignment="Top"/>
+            <Label Grid.Column="5" Content="Rudder" HorizontalAlignment="Center" FontSize="16" VerticalAlignment="Top"/>
+        </Grid>
+        <Grid Grid.Row="2" Grid.RowSpan="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <gauge:Gauge Grid.Column="0"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    Name="Heel" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
+                    StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
+                <gauge:Gauge.GoalMarkers>
+                    <gauge:GoalMarker MarkerColor="Red" Value="5" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Green" Value="20" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Blue" Value="30" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Pink" Value="10" MarkerHeight="6" MarkerWidth="20"/>
+                </gauge:Gauge.GoalMarkers>
+                <gauge:Gauge.ValueTextStyle>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Margin" Value="0,120,0,0" />
+                        <Setter Property="FontSize" Value="28"/>
+                    </Style>
+                </gauge:Gauge.ValueTextStyle>
+            </gauge:Gauge>
+            <gauge:Gauge Grid.Column="2"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    Name="Sheet" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
+                    StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
+                <gauge:Gauge.ValueTextStyle>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Margin" Value="0,120,0,0" />
+                        <Setter Property="FontSize" Value="28"/>
+                    </Style>
+                </gauge:Gauge.ValueTextStyle>
+            </gauge:Gauge>
+            <gauge:Gauge Grid.Column="4"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    Name="Rudder" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
+                    StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
+                <gauge:Gauge.ValueTextStyle>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Margin" Value="0,120,0,0" />
+                        <Setter Property="FontSize" Value="28"/>
+                    </Style>
+                </gauge:Gauge.ValueTextStyle>
+            </gauge:Gauge>
+        </Grid>
+        <Grid Grid.Row="6" Grid.RowSpan="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <gauge:Gauge Grid.Column="1"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    Name="Ram1" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
+                    StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
+                <gauge:Gauge.ValueTextStyle>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Margin" Value="0,120,0,0" />
+                        <Setter Property="FontSize" Value="28"/>
+                    </Style>
+                </gauge:Gauge.ValueTextStyle>
+            </gauge:Gauge>
+            <gauge:Gauge Grid.Column="3"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    Name="Ram2" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
+                    StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
+                <gauge:Gauge.ValueTextStyle>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Margin" Value="0,120,0,0" />
+                        <Setter Property="FontSize" Value="28"/>
+                    </Style>
+                </gauge:Gauge.ValueTextStyle>
+            </gauge:Gauge>
+        </Grid>
+        <Grid Grid.Row="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" HorizontalAlignment="Left" Name="ResetMarkers" Content="Reset Markers"
+                Click="ResetMarkers_Click" Padding="10" Margin="10" FontSize="14"/>
+            <Button Grid.Column="2" HorizontalAlignment="Right" Name="AddMarker" Content="Add Marker"
+                Click="AddMarker_Click" Padding="10" Margin="10" FontSize="14"/>
+        </Grid>
+    </Grid>
+</Window>

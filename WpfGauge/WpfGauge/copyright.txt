@@ -1,0 +1,2 @@
+﻿WPF Gauge
+Copyright ©  2010 Terry Phillips, All Rights Reserved.

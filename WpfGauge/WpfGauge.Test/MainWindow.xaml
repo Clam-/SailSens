@@ -1,0 +1,61 @@
+﻿<Window x:Class="WpfGauge.Test.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="win"
+        Width="825" SizeToContent="WidthAndHeight"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Title="MainWindow" xmlns:gauge="clr-namespace:WpfGauge;assembly=WpfGauge">
+    <Grid>
+        <StackPanel>
+            <gauge:Gauge Grid.Column="1"
+                    FontSize="12" AutoScale="False" Value="1250"
+                    x:Name="TGauge" MajorTickCount="10" MinorTickCount="5" MinValue="0" MaxValue="5000" 
+                    HorizontalAlignment="Left"  StartAngle="-65" EndAngle="247" MajorTickMarkColor="LightYellow" Margin="0" Grid.Row="1" VerticalAlignment="Top" Height="200" Width="200">
+                <gauge:Gauge.GoalMarkers>
+                    <gauge:GoalMarker MarkerColor="Red" Value="2000" />
+                </gauge:Gauge.GoalMarkers>
+                <gauge:Gauge.ValueTextStyle>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Margin" Value="0,60,0,0" />
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </gauge:Gauge.ValueTextStyle>
+
+                <gauge:Gauge.TickLabelStyle>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </gauge:Gauge.TickLabelStyle>
+
+            </gauge:Gauge>
+
+            <gauge:Gauge Grid.Column="1"
+                    FontSize="12" AutoScale="False" Value="150"
+                    StartAngle="-65" EndAngle="247" MajorTickMarkColor="LightYellow"  x:Name="TGauge2" MajorTickCount="10" MinorTickCount="5" MinValue="0" MaxValue="500" 
+                    HorizontalAlignment="Left"  Margin="0" Grid.Row="1" VerticalAlignment="Top" Height="200" Width="200">
+                <gauge:Gauge.GoalMarkers>
+                    <gauge:GoalMarker MarkerColor="Red" Value="200" />
+                </gauge:Gauge.GoalMarkers>
+                <gauge:Gauge.ValueTextStyle>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Margin" Value="0,50,0,0"></Setter>
+                        <Setter Property="Foreground" Value="#fff" />
+                        <Setter Property="FontSize" Value="15" />
+                        <Setter Property="FontWeight" Value="Bold" />
+                        <Setter Property="FontFamily" Value="Tahoma" />
+                    </Style>
+                </gauge:Gauge.ValueTextStyle>
+
+                <gauge:Gauge.TickLabelStyle>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontSize" Value="12"/>
+                    </Style>
+                </gauge:Gauge.TickLabelStyle>
+
+            </gauge:Gauge>
+
+        </StackPanel>
+    </Grid>
+</Window>
