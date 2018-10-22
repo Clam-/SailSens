@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+  </head>
+  <body>
+    <h1>Hello World!</h1>
+    <!-- All of the Node.js APIs are available in this renderer process. -->
+    We are using Node.js <script>document.write(process.versions.node)</script>,
+    Chromium <script>document.write(process.versions.chrome)</script>,
+    Electron <script>document.write(process.versions.electron)</script>,
+    and Serialport <script>document.write(require('serialport/package').version)</script>.
+
+    <div id="error"></div>
+    <div id="ports"></div>
+  </body>
+
+  <script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+  </script>
+</html>
+
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+
+<div id="gauge1" style="min-width: 525px; max-width: 525px; height: 525px; margin: 0 auto"></div>
+<div id="gauge2" style="min-width: 525px; max-width: 525px; height: 525px; margin: 0 auto"></div>
+<div id="gauge3" style="min-width: 525px; max-width: 525px; height: 525px; margin: 0 auto"></div>
+<div id="gauge4" style="min-width: 525px; max-width: 525px; height: 525px; margin: 0 auto"></div>
+<div id="gauge5" style="min-width: 525px; max-width: 525px; height: 525px; margin: 0 auto"></div>

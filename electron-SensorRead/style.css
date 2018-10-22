@@ -1,0 +1,32 @@
+div#gauge1 {
+    position: absolute;
+    top: 0;
+    left: -30px;
+}
+div#gauge2 {
+    position: absolute;
+    top: 0;
+    left: 430px;
+}
+div#gauge3 {
+    position: absolute;
+    top: 0;
+    left: 890px;
+}
+div#gauge4 {
+    position: absolute;
+    top: 395px;
+    left: 200px;
+}
+div#gauge5 {
+    position: absolute;
+    top: 395px;
+    left: 660px;
+}
+
+rect.highcharts-background {
+  fill: #00000000;
+}
+text.highcharts-credits {
+  display: none !important;
+}
