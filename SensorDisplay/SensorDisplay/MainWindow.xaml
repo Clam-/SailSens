@@ -4,7 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gauge="clr-namespace:WpfGauge;assembly=WpfGauge"
-        mc:Ignorable="d"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d" Loaded="Window_Loaded"
         Title="MainWindow" Height="720" Width="1024">
     <Grid>
         <Grid.RowDefinitions>
@@ -46,15 +47,18 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
+            <Label FontSize="18" Grid.Column="0" Name="HeelMarker" Content="Red" VerticalAlignment="Top" Margin="20,0,0,0" Foreground="Red"/>
+            <Label FontSize="18" Grid.Column="2" Name="SheetMarker" Content="Red" VerticalAlignment="Top" Margin="20,0,0,0" Foreground="Red"/>
+            <Label FontSize="18" Grid.Column="4" Name="RudderMarker" Content="Red" VerticalAlignment="Top" Margin="20,0,0,0" Foreground="Red"/>
             <gauge:Gauge Grid.Column="0"
-                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2" Tag="0" MouseRightButtonUp="RMouseGauge" MouseLeftButtonUp="LMouseGauge"
                     Name="Heel" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
                     StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
                 <gauge:Gauge.GoalMarkers>
-                    <gauge:GoalMarker MarkerColor="Red" Value="5" MarkerHeight="6" MarkerWidth="20"/>
-                    <gauge:GoalMarker MarkerColor="Green" Value="20" MarkerHeight="6" MarkerWidth="20"/>
-                    <gauge:GoalMarker MarkerColor="Blue" Value="30" MarkerHeight="6" MarkerWidth="20"/>
-                    <gauge:GoalMarker MarkerColor="Pink" Value="10" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Red" Value="1024" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Green" Value="1025" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Blue" Value="1023" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Pink" Value="1022" MarkerHeight="6" MarkerWidth="20"/>
                 </gauge:Gauge.GoalMarkers>
                 <gauge:Gauge.ValueTextStyle>
                     <Style TargetType="{x:Type TextBlock}">
@@ -65,9 +69,15 @@
                 </gauge:Gauge.ValueTextStyle>
             </gauge:Gauge>
             <gauge:Gauge Grid.Column="2"
-                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2" Tag="1" MouseRightButtonUp="RMouseGauge" MouseLeftButtonUp="LMouseGauge"
                     Name="Sheet" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
                     StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
+                <gauge:Gauge.GoalMarkers>
+                    <gauge:GoalMarker MarkerColor="Red" Value="1024" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Green" Value="1025" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Blue" Value="1023" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Pink" Value="1022" MarkerHeight="6" MarkerWidth="20"/>
+                </gauge:Gauge.GoalMarkers>
                 <gauge:Gauge.ValueTextStyle>
                     <Style TargetType="{x:Type TextBlock}">
                         <Setter Property="Foreground" Value="White"/>
@@ -77,9 +87,15 @@
                 </gauge:Gauge.ValueTextStyle>
             </gauge:Gauge>
             <gauge:Gauge Grid.Column="4"
-                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2" Tag="2" MouseRightButtonUp="RMouseGauge" MouseLeftButtonUp="LMouseGauge"
                     Name="Rudder" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
                     StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
+                <gauge:Gauge.GoalMarkers>
+                    <gauge:GoalMarker MarkerColor="Red" Value="1024" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Green" Value="1025" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Blue" Value="1023" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Pink" Value="1022" MarkerHeight="6" MarkerWidth="20"/>
+                </gauge:Gauge.GoalMarkers>
                 <gauge:Gauge.ValueTextStyle>
                     <Style TargetType="{x:Type TextBlock}">
                         <Setter Property="Foreground" Value="White"/>
@@ -99,9 +115,15 @@
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
             <gauge:Gauge Grid.Column="1"
-                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2" Tag="3" MouseRightButtonUp="RMouseGauge" MouseLeftButtonUp="LMouseGauge"
                     Name="Ram1" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
                     StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
+                <gauge:Gauge.GoalMarkers>
+                    <gauge:GoalMarker MarkerColor="Red" Value="1024" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Green" Value="1025" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Blue" Value="1023" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Pink" Value="1022" MarkerHeight="6" MarkerWidth="20"/>
+                </gauge:Gauge.GoalMarkers>
                 <gauge:Gauge.ValueTextStyle>
                     <Style TargetType="{x:Type TextBlock}">
                         <Setter Property="Foreground" Value="White"/>
@@ -111,9 +133,15 @@
                 </gauge:Gauge.ValueTextStyle>
             </gauge:Gauge>
             <gauge:Gauge Grid.Column="3"
-                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2"
+                    FontSize="14" AutoScale="False" Value="550" Grid.ColumnSpan="2" Tag="4" MouseRightButtonUp="RMouseGauge" MouseLeftButtonUp="LMouseGauge"
                     Name="Ram2" MajorTickCount="10" MinorTickCount="4" MinValue="0" MaxValue="1025" 
                     StartAngle="-87" EndAngle="267" MajorTickMarkColor="LightYellow" Height="290" Width="290">
+                <gauge:Gauge.GoalMarkers>
+                    <gauge:GoalMarker MarkerColor="Red" Value="1024" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Green" Value="1025" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Blue" Value="1023" MarkerHeight="6" MarkerWidth="20"/>
+                    <gauge:GoalMarker MarkerColor="Pink" Value="1022" MarkerHeight="6" MarkerWidth="20"/>
+                </gauge:Gauge.GoalMarkers>
                 <gauge:Gauge.ValueTextStyle>
                     <Style TargetType="{x:Type TextBlock}">
                         <Setter Property="Foreground" Value="White"/>
@@ -126,13 +154,14 @@
         <Grid Grid.Row="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" HorizontalAlignment="Left" Name="ResetMarkers" Content="Reset Markers"
                 Click="ResetMarkers_Click" Padding="10" Margin="10" FontSize="14"/>
-            <Button Grid.Column="2" HorizontalAlignment="Right" Name="AddMarker" Content="Add Marker"
-                Click="AddMarker_Click" Padding="10" Margin="10" FontSize="14"/>
+            <Label FontSize="18" Grid.Column="1" Name="Ram1Marker" Content="Red" VerticalAlignment="Center" Margin="20,0,0,0" Foreground="Red"/>
+            <Label FontSize="18" Grid.Column="2" Name="Ram2Marker" Content="Red" VerticalAlignment="Center" Margin="20,0,0,0" Foreground="Red"/>
         </Grid>
     </Grid>
 </Window>
