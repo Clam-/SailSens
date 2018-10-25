@@ -1,32 +1,49 @@
-div#gauge1 {
+
+body {
+  background: #fff;
+
+}
+
+div#mainsheet {
     position: absolute;
     top: 0;
     left: -30px;
 }
-div#gauge2 {
+div#heel {
     position: absolute;
     top: 0;
     left: 430px;
 }
-div#gauge3 {
+div#rudder {
     position: absolute;
     top: 0;
     left: 890px;
 }
-div#gauge4 {
+div#ram1 {
     position: absolute;
     top: 395px;
     left: 200px;
 }
-div#gauge5 {
+div#ram2 {
     position: absolute;
     top: 395px;
     left: 660px;
 }
+div#footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 120px;
+}
 
 rect.highcharts-background {
-  fill: #00000000;
+  fill: rgba(0, 0, 0, 0);
 }
 text.highcharts-credits {
   display: none !important;
+}
+
+textarea {
+  width:100%;
+  height:100%;
 }

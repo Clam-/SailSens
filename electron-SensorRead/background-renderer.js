@@ -6,10 +6,16 @@ function sleep(ms) {
 }
 
 var run = true;
+var rendererID = null;
+var port = null;
 
-ipcRenderer.on('quit', (event, arg) => {
+ipcRenderer.once('quit', (event, arg) => {
   run = false;
-})
+  rendererID = null;
+  if (port !== null) { port.close(); port = null; }
+});
+ipcRenderer.once('rendererID', (event, arg) => { rendererID = arg; });
+
 
 function openPort(method) {
   return new Promise(function(resolve, reject) {
@@ -22,11 +28,11 @@ function openPort(method) {
 function connect() {
   serialport.list((err, ports) => {
     if (err) {
-      ipcRenderer.send('gotMessage', 'Error: ' + err);
+      ipcRenderer.sendTo(rendererID, "logMsg", 'Error: ' + err);
     } else {
-      ipcRenderer.send('gotMessage', 'Ports: ' + ports.join(", "));
-      ports.forEach((port) => {
-        ipcRenderer.send('gotMessage', 'Trying port: ' + port.comName;
+      ipcRenderer.sendTo(rendererID, "logMsg", 'Ports: ' + ports.join(", "));
+      ports.forEach(async (port) => {
+        ipcRenderer.sendTo(rendererID, "logMsg", 'Trying port: ' + port.comName);
         port = new SerialPort(port.comName, {
           baudRate: 38400,
           autoOpen: false
@@ -38,31 +44,54 @@ function connect() {
             var data = serialport.read(10);
             if (data === null) { sleep(200); data = serialport.read(10); }
             if (data !== null) { return port; }
-            ipcRenderer.send('gotMessage', "Timeout on: "+ port.comName);
-          } else { ipcRenderer.send('gotMessage', "Unexpected open false."); }
+            ipcRenderer.sendTo(rendererID, "logMsg", "Timeout on: "+ port.comName);
+          } else { ipcRenderer.sendTo(rendererID, "logMsg", "Unexpected open false."); }
         } catch (err) {
-          ipcRenderer.send('gotMessage', err);
+          ipcRenderer.sendTo(rendererID, "logMsg", err);
         }
-      }
+      });
     }
-  }
+  });
   return null;
 }
 
 function processData(chunk) {
   var a = chunk.split(" ");
   if (a.length == 5) {
-    ipcRenderer.send('gotData', a);
+    a = a.map(Number);
+    ipcRenderer.sendTo(rendererID, 'arrayData', a);
   }
 }
 
-function loop() {
+async function realLoop() {
   if (!run) { return; }
-  if (!connected) {
     await sleep(500);
     port = connect();
-    // start readlining
-    const parser = port.pipe(new Readline({ delimiter: '\r\n' }))
-    parser.on('data', processData)
+    if (port !== null) {
+      // handle disconnect/errors
+      port.on('close', () => {
+        ipcRenderer.sendTo(rendererID, "logMsg", "Serial Port closed.");
+        setTimeout(realLoop, 500);
+      });
+      // start readlining
+      const parser = port.pipe(new Readline({ delimiter: '\r\n' }))
+      parser.on('data', processData)
+    } else {
+      // call realLoop again later
+      ipcRenderer.sendTo(rendererID, "logMsg", "Couldn't connect.");
+      setTimeout(realLoop, 500);
+    }
+}
+
+async function testLoop() {
+  await sleep(1000);
+  while (true) {
+    ipcRenderer.sendTo(rendererID, 'arrayData', [Math.round(Math.random()*1000),Math.round(Math.random()*1000),
+        Math.round(Math.random()*1000),Math.round(Math.random()*1000),
+        Math.round(Math.random()*1000)]);
+    await sleep(400);
   }
 }
+
+//testLoop();
+realLoop();

@@ -15,7 +15,7 @@ let backgroundWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 1920, height: 1080})
+  mainWindow = new BrowserWindow({width: 2220, height: 1080})
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
@@ -23,7 +23,8 @@ function createWindow () {
     slashes: true
   }))
   // Open the DevTools.
-  //mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools();
+
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
@@ -31,12 +32,27 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
     backgroundWindow.webContents.send('quit', {});
+    backgroundWindow.close();
     backgroundWindow = null
   })
 
   // Create backgroundworker
-  backgroundWindow = new BrowserWindow({show: false});
+  backgroundWindow = new BrowserWindow(); //{show: false}
+  backgroundWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'backgroundWindow.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+  console.log("Main ID: " + mainWindow.webContents.id);
+  backgroundWindow.webContents.on('did-finish-load', () => {
+    backgroundWindow.webContents.send('rendererID', mainWindow.webContents.id);
+  });
+  backgroundWindow.webContents.openDevTools();
 }
+
+ipcMain.on('log', (event, arg) => {
+  console.log(arg);
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
