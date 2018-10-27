@@ -37,17 +37,15 @@ function createWindow () {
   })
 
   // Create backgroundworker
-  backgroundWindow = new BrowserWindow(); //{show: false}
+  backgroundWindow = new BrowserWindow({show: false});
   backgroundWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'backgroundWindow.html'),
     protocol: 'file:',
     slashes: true
   }))
-  console.log("Main ID: " + mainWindow.webContents.id);
   backgroundWindow.webContents.on('did-finish-load', () => {
     backgroundWindow.webContents.send('rendererID', mainWindow.webContents.id);
   });
-  backgroundWindow.webContents.openDevTools();
 }
 
 ipcMain.on('log', (event, arg) => {

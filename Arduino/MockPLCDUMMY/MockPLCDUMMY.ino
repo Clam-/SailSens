@@ -51,8 +51,8 @@ const int ENC3_LEDA = A5;     // A5 LED Activity
 
 const int SPIN = 11;        // Spinnaker
 
-//int RAM[] = {0,4095};
-//int RAMinc[] = {0, -1};
+int VALUES[] = {0,1024,0,1024, 0};
+int VALUESinc[] = {1, -1, 1, -1, 1};
 
 void initEnc(int csPin, int clkPin, int dPin) {
   pinMode(csPin, OUTPUT);
@@ -148,17 +148,26 @@ void printOps() {
   ops += 1;
 }
 
+int processValue(int x) {
+  // VALUES  VALUESinc
+  VALUES[x] = VALUES[x] + VALUESinc[x];
+  if (VALUES[x] < 0) {
+    VALUES[x] = 0; VALUESinc[x] = 1;
+  } else if (VALUES[x] > 1024) {
+    VALUES[x] = 1024; VALUESinc[x] = -1;
+  }
+  return VALUES[x];
+}
+
 void loop() {
 #ifndef DEBUG
   mb.task();
 #endif
-  
-  int enc1 = readEncoder(ENC1_CS, ENC1_CLOCK, ENC1_DATA);
-  int enc2 = readEncoder(ENC2_CS, ENC2_CLOCK, ENC2_DATA);
-  int enc3 = readEncoder(ENC3_CS, ENC3_CLOCK, ENC3_DATA);
-
-//  Serial.print("Enc1: "); Serial.print((enc1& B00000110) > 0); Serial.print("Enc2: "); 
-//  Serial.print((enc2 & B00001110) > 0); Serial.print("Enc3: "); Serial.println((enc3 & B00001100) > 0);
+  int enc1 = processValue(0);
+  int enc2 = processValue(1);
+  int enc3 = processValue(2);
+  mb.Hreg(RAM1_REG, processValue(3));
+  mb.Hreg(RAM2_REG, processValue(4));
 
 #ifdef SERIALOUT
   Serial1.print("RAM1:"); Serial1.print(mb.Hreg(RAM1_REG)); Serial1.print("  RAM2:"); Serial1.println(mb.Hreg(RAM2_REG)); 

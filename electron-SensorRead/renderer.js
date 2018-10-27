@@ -85,6 +85,7 @@ CHARTS.push(Highcharts.chart('ram1', settings));
 settings.yAxis.title.text = "Ram 2"
 CHARTS.push(Highcharts.chart('ram2', settings));
 
+var MARKERMAP = {}
 
 ipcRenderer.on('arrayData', (event, arg) => {
 	for (var x = 0; x<arg.length; x++) {

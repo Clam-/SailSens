@@ -1,61 +1,67 @@
 const {ipcRenderer} = require('electron')
-const serialport = require('serialport')
+const SerialPort  = require('serialport')
+const Readline = require('@serialport/parser-readline')
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-var run = true;
+function LOG(s) {
+  ipcRenderer.send("log", s);
+}
+
+var RUN = true;
 var rendererID = null;
-var port = null;
+var GPORT = null;
 
 ipcRenderer.once('quit', (event, arg) => {
-  run = false;
+  RUN = false;
   rendererID = null;
-  if (port !== null) { port.close(); port = null; }
+  if (GPORT !== null) { GPORT.close(); GPORT = null; }
 });
 ipcRenderer.once('rendererID', (event, arg) => { rendererID = arg; });
 
 
-function openPort(method) {
-  return new Promise(function(resolve, reject) {
-        return method(function(err) {
-            return err ? reject(err) : resolve(true);
-        });
+async function connect() {
+  var ports = null;
+  try { ports = await SerialPort.list(); }
+  catch (err) {
+    ipcRenderer.sendTo(rendererID, "logMsg", "List Error: " + err);
+  }
+  ipcRenderer.sendTo(rendererID, "logMsg", 'Ports: ' + ports.map(e => e.comName).join(","));
+  for (const iport of ports) {
+    ipcRenderer.sendTo(rendererID, "logMsg", 'Trying port: ' + iport.comName);
+    port = new SerialPort(iport.comName, {
+      baudRate: 38400,
+      autoOpen: false
     });
-}
-
-function connect() {
-  serialport.list((err, ports) => {
-    if (err) {
-      ipcRenderer.sendTo(rendererID, "logMsg", 'Error: ' + err);
-    } else {
-      ipcRenderer.sendTo(rendererID, "logMsg", 'Ports: ' + ports.join(", "));
-      ports.forEach(async (port) => {
-        ipcRenderer.sendTo(rendererID, "logMsg", 'Trying port: ' + port.comName);
-        port = new SerialPort(port.comName, {
-          baudRate: 38400,
-          autoOpen: false
-        })
-        try {
-          let result = await openPort(port.open);
-          if (result) {
-            // port opened... attempt to get some data?
-            var data = serialport.read(10);
-            if (data === null) { sleep(200); data = serialport.read(10); }
-            if (data !== null) { return port; }
-            ipcRenderer.sendTo(rendererID, "logMsg", "Timeout on: "+ port.comName);
-          } else { ipcRenderer.sendTo(rendererID, "logMsg", "Unexpected open false."); }
-        } catch (err) {
-          ipcRenderer.sendTo(rendererID, "logMsg", err);
-        }
-      });
+    try {
+      await port.open();
+      // port opened... attempt to get some data?
+      console.log("port opened:" + iport.comName);
+      var data = await port.read(10);
+      if (data === null) {
+        await sleep(200);
+        data = await port.read(10);
+      }
+      if (data !== null) {
+        // successfull connect and get data
+        ipcRenderer.sendTo(rendererID, "logMsg", "Connected to: " + iport.comName);
+        return port;
+      }
+      ipcRenderer.sendTo(rendererID, "logMsg", "Timeout on: " + iport.comName);
+      port.close();
+    } catch (err) {
+      console.log("CAUGHT ERR:" + err);
+      ipcRenderer.sendTo(rendererID, "logMsg", err);
     }
-  });
+  }
   return null;
 }
 
 function processData(chunk) {
+  // only 25% chance to send data until I figure out a better way to skip samples.
+  if (Math.random() > 0.25) { return; }
   var a = chunk.split(" ");
   if (a.length == 5) {
     a = a.map(Number);
@@ -63,23 +69,26 @@ function processData(chunk) {
   }
 }
 
+function thenWrapper() {
+  realLoop().then();
+}
 async function realLoop() {
-  if (!run) { return; }
-    await sleep(500);
-    port = connect();
-    if (port !== null) {
+  if (!RUN) { return; }
+    await sleep(1000);
+    GPORT = await connect();
+    if (GPORT !== null) {
       // handle disconnect/errors
-      port.on('close', () => {
+      GPORT.on('close', () => {
         ipcRenderer.sendTo(rendererID, "logMsg", "Serial Port closed.");
-        setTimeout(realLoop, 500);
+        setTimeout(thenWrapper, 500);
       });
       // start readlining
-      const parser = port.pipe(new Readline({ delimiter: '\r\n' }))
+      const parser = GPORT.pipe(new Readline({ delimiter: '\r\n' }))
       parser.on('data', processData)
     } else {
       // call realLoop again later
       ipcRenderer.sendTo(rendererID, "logMsg", "Couldn't connect.");
-      setTimeout(realLoop, 500);
+      setTimeout(thenWrapper, 500);
     }
 }
 
@@ -92,6 +101,5 @@ async function testLoop() {
     await sleep(400);
   }
 }
-
 //testLoop();
-realLoop();
+thenWrapper();
