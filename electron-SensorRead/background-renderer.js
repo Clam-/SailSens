@@ -32,7 +32,7 @@ async function connect() {
   for (const iport of ports) {
     ipcRenderer.sendTo(rendererID, "logMsg", 'Trying port: ' + iport.comName);
     port = new SerialPort(iport.comName, {
-      baudRate: 38400,
+      baudRate: 9600,
       autoOpen: false
     });
     try {
@@ -60,9 +60,8 @@ async function connect() {
 }
 
 function processData(chunk) {
-  // only 25% chance to send data until I figure out a better way to skip samples.
-  if (Math.random() > 0.25) { return; }
   var a = chunk.split(" ");
+  //ipcRenderer.sendTo(rendererID, "logMsg", "Length: " + a.length + " - " + a);
   if (a.length == 5) {
     a = a.map(Number);
     ipcRenderer.sendTo(rendererID, 'arrayData', a);

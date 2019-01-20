@@ -7,27 +7,27 @@ body {
 div#mainsheet {
     position: absolute;
     top: 0;
-    left: -30px;
+    left: -100px;
 }
 div#heel {
     position: absolute;
     top: 0;
-    left: 430px;
+    left: 240px;
 }
 div#rudder {
     position: absolute;
     top: 0;
-    left: 890px;
+    left: 590px;
 }
 div#ram1 {
     position: absolute;
-    top: 395px;
-    left: 200px;
+    top: 235px;
+    left: 60px;
 }
 div#ram2 {
     position: absolute;
-    top: 395px;
-    left: 660px;
+    top: 235px;
+    left: 420px;
 }
 div#footer {
   position: fixed;

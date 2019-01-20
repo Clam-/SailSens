@@ -87,7 +87,11 @@ CHARTS.push(Highcharts.chart('ram2', settings));
 
 var MARKERMAP = {}
 
+var COUNT = 0;
+
 ipcRenderer.on('arrayData', (event, arg) => {
+	if (COUNT < 2) { COUNT++; return;}
+	COUNT = 0;
 	for (var x = 0; x<arg.length; x++) {
 		CHARTS[x].series[0].points[0].update(arg[x]);
 	}
