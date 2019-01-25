@@ -47,8 +47,7 @@ int MONSKIP = 20;
 // #################################
 // PIN CONFIGURATION
 // #################################
-Button<BOARD::D12> spin_button; // Spinnaker
-bool spinnaker = false;
+GPIO<BOARD::D12> SPIN_BUTTON; // Spinnaker
 
 // Encoder 1  MainSheet
 GPIO<BOARD::D4>     ENC1_CS;      // Blue
@@ -108,7 +107,8 @@ void initEncFast() {
   // Set Encoder initial states
   ENC1_CLOCK = HIGH; ENC2_CLOCK = HIGH; ENC3_CLOCK = HIGH; 
   ENC1_CS = LOW;     ENC2_CS = LOW;     ENC3_CS = LOW;
-
+}
+void initLEDs() {
   // Set LED pin modes
   ENC1_LED1.output(); ENC1_LED2.output(); ENC1_LED3.output();
   ENC2_LED1.output(); ENC2_LED2.output(); ENC2_LED3.output();
@@ -164,6 +164,8 @@ void setup() {
   initEncSlow(SENC1_CS, SENC1_CLOCK, SENC1_DATA); // Init Encoder 1
   initEncSlow(SENC2_CS, SENC2_CLOCK, SENC2_DATA); // Init Encoder 2
   initEncSlow(SENC3_CS, SENC3_CLOCK, SENC3_DATA); // Init Encoder 3
+  initLEDs();
+  SPIN_BUTTON.input();
   TEST_LED.output();
 }
 
@@ -369,12 +371,12 @@ void loop() {
   doENC1LEDs(enc1); doENC2LEDs(enc2); doENC3LEDs(enc3);
 
 // spinnaker
-  if (spin_button.ischanged()) { spinnaker = !spinnaker; }
+  if (FLASH()) { TEST_LED.write(!SPIN_BUTTON); }
 #ifdef DEBUG
-  Serial.print("Spin: ");Serial.println(spinnaker);  
+  Serial.print("Spin: ");Serial.println(!SPIN_BUTTON);  
 #else
   // set modbus data
-  mb.Ists(SPIN_STATUS, spinnaker);
+  mb.Ists(SPIN_STATUS, !SPIN_BUTTON);
   mb.Ireg(MAINSH_REG, enc1);
   mb.Ireg(TILL_REG, enc2);
   mb.Ireg(HEEL_REG, enc3);
