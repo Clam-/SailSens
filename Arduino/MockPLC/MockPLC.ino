@@ -5,6 +5,9 @@
 //#define SERIALOUT
 #define MONITOR
 //#define FIRSTTIMESETUP
+#define FAST
+#define SLOW
+#define NORM
 
 // #################################
 // INCLUDES, REQUIREMENTS
@@ -34,7 +37,7 @@ Adafruit_MCP4725 exDAC2;
 const int SPIN_STATUS = 2128; // 12129
 const int RAM1_REG    = 641; // 40641
 const int RAM2_REG    = 640; // 40642
-const int MAINSH_REG  = 642; // 400643
+const int MAINSH_REG  = 642; // 40643
 const int TILL_REG    = 643; // 40644
 const int HEEL_REG    = 644; // 40645
 #ifndef DEBUG
@@ -108,6 +111,15 @@ void initEncFast() {
   ENC1_CLOCK = HIGH; ENC2_CLOCK = HIGH; ENC3_CLOCK = HIGH; 
   ENC1_CS = LOW;     ENC2_CS = LOW;     ENC3_CS = LOW;
 }
+
+void initEncSlow(int csPin, int clkPin, int dPin) {
+  pinMode(csPin, OUTPUT);
+  pinMode(clkPin, OUTPUT);
+  pinMode(dPin, INPUT);
+  digitalWrite(clkPin, HIGH);
+  digitalWrite(csPin, LOW);
+}
+
 void initLEDs() {
   // Set LED pin modes
   ENC1_LED1.output(); ENC1_LED2.output(); ENC1_LED3.output();
@@ -116,14 +128,6 @@ void initLEDs() {
   ENC1_LED1 = LOW; ENC1_LED2 = LOW; ENC1_LED3 = LOW;
   ENC2_LED1 = LOW; ENC2_LED2 = LOW; ENC2_LED3 = LOW;
   ENC3_LED1 = LOW; ENC3_LED2 = LOW; ENC3_LED3 = LOW;
-}
-
-void initEncSlow(int csPin, int clkPin, int dPin) {
-  pinMode(csPin, OUTPUT);
-  pinMode(clkPin, OUTPUT);
-  pinMode(dPin, INPUT);
-  digitalWrite(clkPin, HIGH);
-  digitalWrite(csPin, LOW);
 }
 
 void setup() {
@@ -160,10 +164,14 @@ void setup() {
   exDAC1.setVoltage(0, false);
   exDAC2.setVoltage(0, false);
 #endif
-  //initEncFast(); // Init Encoders
+#ifdef FAST
+  initEncFast(); // Init Encoders
+#endif
+#if defined(SLOW) | defined(NORM) 
   initEncSlow(SENC1_CS, SENC1_CLOCK, SENC1_DATA); // Init Encoder 1
   initEncSlow(SENC2_CS, SENC2_CLOCK, SENC2_DATA); // Init Encoder 2
   initEncSlow(SENC3_CS, SENC3_CLOCK, SENC3_DATA); // Init Encoder 3
+#endif
   initLEDs();
   SPIN_BUTTON.input();
   TEST_LED.output();
@@ -189,6 +197,26 @@ int readEncoderSlow(int csPin, int clkPin, int dPin) {
   return pos;
 }
 
+int readEncoder(int csPin, int clkPin, int dPin) {
+  digitalWrite(csPin, HIGH);
+  digitalWrite(csPin, LOW);
+  int pos = 0;
+  for (int i=0; i<10; i++) {
+    digitalWrite(clkPin, LOW);
+    digitalWrite(clkPin, HIGH);
+   
+    pos = pos | digitalRead(dPin);
+    if (i<9) { pos = pos << 1; }
+  }
+  for (int i=0; i<6; i++) {
+    digitalWrite(clkPin, LOW);
+    digitalWrite(clkPin, HIGH);
+  }
+  digitalWrite(clkPin, LOW);
+  digitalWrite(clkPin, HIGH);
+  return pos;
+}
+
 
 int readENC1Fast() {
   // ENC1_CS ENC1_DATA ENC1_CLOCK;
@@ -196,8 +224,8 @@ int readENC1Fast() {
   int pos = 0;
   for (int i=0; i<10; i++) {
     ENC1_CLOCK.low(); ENC1_CLOCK.high();
-    byte b = ENC1_DATA.read() == HIGH ? 1 : 0;
-    pos += b * pow(2, 10-(i+1));
+    pos = pos | ENC1_DATA.read();
+    if (i<9) { pos = pos << 1; }
   }
   for (int i=0; i<6; i++) { ENC1_CLOCK = LOW; ENC1_CLOCK = HIGH; } // skip these bits
   ENC1_CLOCK = LOW; ENC1_CLOCK = HIGH;
@@ -209,8 +237,8 @@ int readENC2Fast() {
   int pos = 0;
   for (int i=0; i<10; i++) {
     ENC2_CLOCK = LOW; ENC2_CLOCK = HIGH;
-    byte b = ENC2_DATA.read() == HIGH ? 1 : 0;
-    pos += b * pow(2, 10-(i+1));
+    pos = pos | ENC2_DATA.read();
+    if (i<9) { pos = pos << 1; }
   }
   for (int i=0; i<6; i++) { ENC2_CLOCK = LOW; ENC2_CLOCK = HIGH; } // skip these bits
   ENC2_CLOCK = LOW; ENC2_CLOCK = HIGH;
@@ -222,8 +250,8 @@ int readENC3Fast() {
   int pos = 0;
   for (int i=0; i<10; i++) {
     ENC3_CLOCK = LOW; ENC3_CLOCK = HIGH;
-    byte b = ENC3_DATA.read() == HIGH ? 1 : 0;
-    pos += b * pow(2, 10-(i+1));
+    pos = pos | ENC3_DATA.read();
+    if (i<9) { pos = pos << 1; }
   }
   for (int i=0; i<6; i++) { ENC3_CLOCK = LOW; ENC3_CLOCK = HIGH; } // skip these bits
   ENC3_CLOCK = LOW; ENC3_CLOCK = HIGH;
@@ -337,13 +365,19 @@ void loop() {
 #ifndef DEBUG
   mb.task();
 #endif
-  
-  //int enc1 = readENC1Fast();
-  //int enc2 = readENC2Fast();
-  //int enc3 = readENC3Fast();
+#if defined(FAST)
+  int enc1 = readENC1Fast();
+  int enc2 = readENC2Fast();
+  int enc3 = readENC3Fast();
+#elif defined(SLOW)
   int enc1 = readEncoderSlow(SENC1_CS, SENC1_CLOCK, SENC1_DATA);
   int enc2 = readEncoderSlow(SENC2_CS, SENC2_CLOCK, SENC2_DATA);
   int enc3 = readEncoderSlow(SENC3_CS, SENC3_CLOCK, SENC3_DATA);
+#elif defined(NORM)
+  int enc1 = readEncoder(SENC1_CS, SENC1_CLOCK, SENC1_DATA);
+  int enc2 = readEncoder(SENC2_CS, SENC2_CLOCK, SENC2_DATA);
+  int enc3 = readEncoder(SENC3_CS, SENC3_CLOCK, SENC3_DATA);
+#endif
 
 //  Serial.print("Enc1: "); Serial.print((enc1& B00000110) > 0); Serial.print("Enc2: "); 
 //  Serial.print((enc2 & B00001110) > 0); Serial.print("Enc3: "); Serial.println((enc3 & B00001100) > 0);
