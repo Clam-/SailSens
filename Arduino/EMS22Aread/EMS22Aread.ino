@@ -1,17 +1,21 @@
 // Encoder 1
-const int ENC1_CS = 5; // Blue
-const int ENC1_CLOCK = 2; //Green
-const int ENC1_DATA = 3; //Yellow
+const int ENC1_CS = 4; // Blue
+const int ENC1_DATA = 3; //Green
+const int ENC1_CLOCK = 2; //Yellow
 // Encoder 2
-const int ENC2_CS = 10;
-const int ENC2_CLOCK = 6;
-const int ENC2_DATA = 9;
+const int ENC2_CS = 7;
+const int ENC2_DATA = 6;
+const int ENC2_CLOCK = 5;
 // Encoder 3
-const int ENC3_CS = 13;
-const int ENC3_CLOCK = 11;
-const int ENC3_DATA = 12;
+const int ENC3_CS = 10;
+const int ENC3_DATA = 9;
+const int ENC3_CLOCK = 8;
 
 const float STEP = 0.35294;
+unsigned int OPS = 0;
+unsigned int PREVOPS = 0;
+unsigned long PREVTIME = 0;
+unsigned long OPSTIME = 1000;
 
 void initEnc(int csPin, int clkPin, int dPin) {
   pinMode(csPin, OUTPUT);
@@ -22,37 +26,60 @@ void initEnc(int csPin, int clkPin, int dPin) {
 }
 
 void setup() {
-  Serial.begin(115200);
+  SerialUSB.begin(115200);
   initEnc(ENC1_CS, ENC1_CLOCK, ENC1_DATA); // Init Encoder 1
   initEnc(ENC2_CS, ENC2_CLOCK, ENC2_DATA); // Init Encoder 2
   initEnc(ENC3_CS, ENC3_CLOCK, ENC3_DATA); // Init Encoder 3
+  Serial3.begin(9600);
 }
 
 int readEncoder(int csPin, int clkPin, int dPin) {
   digitalWrite(csPin, HIGH);
   digitalWrite(csPin, LOW);
   int pos = 0;
-  for (int i=0; i<10; i++) {
+  for (int i=0; i<16; i++) { 
     digitalWrite(clkPin, LOW);
     digitalWrite(clkPin, HIGH);
    
-    byte b = digitalRead(dPin) == HIGH ? 1 : 0;
-    pos += b * pow(2, 10-(i+1));
-  }
-  for (int i=0; i<6; i++) {
-    digitalWrite(clkPin, LOW);
-    digitalWrite(clkPin, HIGH);
+    pos = pos | digitalRead(dPin);
+    if (i<15) { pos = pos << 1; }
   }
   digitalWrite(clkPin, LOW);
   digitalWrite(clkPin, HIGH);
-  return pos;
+  return pos; // including extdata
+}
+
+unsigned int parity_check(unsigned int v){
+  //http://graphics.stanford.edu/~seander/bithacks.html#ParityNaive
+  v ^= v >> 16;
+  v ^= v >> 8;
+  v ^= v >> 4;
+  v &= 0xf;
+  return (0x6996 >> v) & 1;
 }
 
 //byte stream[16];
 void loop() {
-  Serial.print(readEncoder(ENC1_CS, ENC1_CLOCK, ENC1_DATA)); 
-  Serial.print("\t"); 
-  Serial.print(readEncoder(ENC2_CS, ENC2_CLOCK, ENC2_DATA)*STEP); 
-  Serial.print("\t"); 
-  Serial.println(readEncoder(ENC3_CS, ENC3_CLOCK, ENC3_DATA)*STEP);
+  unsigned int enc1 = readEncoder(ENC1_CS, ENC1_CLOCK, ENC1_DATA);
+  unsigned int enc1v = enc1 >> 6;
+  unsigned int enc1e = enc1 & B111111;
+  SerialUSB.print(enc1, HEX);
+  SerialUSB.print("\t"); 
+  SerialUSB.print(enc1v, DEC); 
+  SerialUSB.print("\t"); 
+  SerialUSB.print(enc1e, HEX); 
+  SerialUSB.print("\t"); 
+  SerialUSB.println(parity_check(enc1), BIN);
+
+  unsigned int enc2 = readEncoder(ENC2_CS, ENC2_CLOCK, ENC2_DATA);
+  unsigned int enc3 = readEncoder(ENC3_CS, ENC3_CLOCK, ENC3_DATA);
+  // Debug format: enc1  enc2  enc3  ram1  ram2  ops
+  Serial3.print(enc1); Serial3.print(" "); Serial3.print(enc2); Serial3.print(" "); Serial3.print(enc3); Serial3.print(" "); 
+  Serial3.print(0); Serial3.print(" "); Serial3.print(0); Serial3.print(" "); Serial3.println(OPS);
+
+  //ops calc
+  if (millis() - PREVTIME > OPSTIME){
+    PREVOPS = OPS; OPS = 0;
+  } else { OPS++; }
+  PREVTIME = millis();
 }

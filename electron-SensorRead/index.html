@@ -6,11 +6,25 @@
     <link rel="stylesheet" type="text/css" href="./style.css">
   </head>
   <body>
+    <div id="mainstatic" class="fixedwidth"><span>Y N N N N</span></div>
     <div id="mainsheet" style="height: 300px; margin: 0 auto"></div>
+    <div id="maindynamic" class="fixedwidth"><span>Y N N N N</span></div>
+    <div id="heelstatic" class="fixedwidth"><span>Y N N N N</span></div>
     <div id="heel" style="height: 300px; margin: 0 auto"></div>
+    <div id="heeldynamic" class="fixedwidth"><span>Y N N N N</span></div>
+    <div id="rudderstatic" class="fixedwidth"><span>Y N N N N</span></div>
     <div id="rudder" style="height: 300px; margin: 0 auto"></div>
+    <div id="rudderdynamic" class="fixedwidth"><span>Y N N N N</span></div>
     <div id="ram1" style="height: 300px; margin: 0 auto"></div>
     <div id="ram2" style="height: 300px; margin: 0 auto"></div>
+    <div id="ops"><p>OPS: <span id=opsval>0</span> (<span id=opsmin>0</span>/<span id=opsmax>0</span>)</div>
+    <div id="legend"><h3>S1 S2 S3 S4 S5 P1</h3><p>
+      S1 - Offset Comp Algo Finished<br>
+      S2 - Cordic overflow/Data invalid<br>
+      S3 - Linearity alarm<br>
+      S4 - Increase in magnitude<br>
+      S5 - Decrease in magnitude<br>
+      P1 - Parity</p></div>
     <div id="footer"><textarea id="logbox"></textarea></div>
   </body>
   <script>

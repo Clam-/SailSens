@@ -5,8 +5,8 @@
 //#define SERIALOUT
 #define MONITOR
 //#define FIRSTTIMESETUP
-#define FAST
-#define SLOW
+//#define FAST
+//#define SLOW
 #define NORM
 
 // #################################
@@ -44,8 +44,19 @@ const int HEEL_REG    = 644; // 40645
 ModbusSerial mb;
 #endif
 
-int MONSTEP = 0;
-int MONSKIP = 20;
+const unsigned int ENCEXT = B100000;
+unsigned int OPS = 0;
+unsigned int PREVOPS = 0;
+unsigned long PREVTIME = 0;
+unsigned long PREVTIMEOPS = 0;
+unsigned long MONTIME = 50;
+unsigned long OPSTIME = 1000;
+unsigned long RAMCOOLTIME = 0;
+bool RAMON = true;
+unsigned long RAMCOOLDURATION = 1500;
+unsigned int ENC1EXT = ENCEXT;
+unsigned int ENC2EXT = ENCEXT;
+unsigned int ENC3EXT = ENCEXT;
 
 // #################################
 // PIN CONFIGURATION
@@ -136,7 +147,7 @@ void setup() {
   Serial1.println("Connected "); 
 #endif
 #ifdef MONITOR
-  Serial3.begin(9600);
+  Serial3.begin(57600);
   //Serial3.println("Opened Serial3."); 
 #endif
 
@@ -175,47 +186,25 @@ void setup() {
   initLEDs();
   SPIN_BUTTON.input();
   TEST_LED.output();
-}
-
-int readEncoderSlow(int csPin, int clkPin, int dPin) {
-  digitalWrite(csPin, HIGH);
-  digitalWrite(csPin, LOW);
-  int pos = 0;
-  for (int i=0; i<10; i++) {
-    digitalWrite(clkPin, LOW);
-    digitalWrite(clkPin, HIGH);
-   
-    byte b = digitalRead(dPin) == HIGH ? 1 : 0;
-    pos += b * pow(2, 10-(i+1));
-  }
-  for (int i=0; i<6; i++) {
-    digitalWrite(clkPin, LOW);
-    digitalWrite(clkPin, HIGH);
-  }
-  digitalWrite(clkPin, LOW);
-  digitalWrite(clkPin, HIGH);
-  return pos;
+  PREVTIME = millis();
 }
 
 int readEncoder(int csPin, int clkPin, int dPin) {
   digitalWrite(csPin, HIGH);
   digitalWrite(csPin, LOW);
   int pos = 0;
-  for (int i=0; i<10; i++) {
+  for (int i=0; i<16; i++) { 
     digitalWrite(clkPin, LOW);
     digitalWrite(clkPin, HIGH);
    
     pos = pos | digitalRead(dPin);
-    if (i<9) { pos = pos << 1; }
-  }
-  for (int i=0; i<6; i++) {
-    digitalWrite(clkPin, LOW);
-    digitalWrite(clkPin, HIGH);
+    if (i<15) { pos = pos << 1; }
   }
   digitalWrite(clkPin, LOW);
   digitalWrite(clkPin, HIGH);
-  return pos;
+  return pos; // including extdata
 }
+
 
 
 int readENC1Fast() {
@@ -227,8 +216,8 @@ int readENC1Fast() {
     pos = pos | ENC1_DATA.read();
     if (i<9) { pos = pos << 1; }
   }
-  for (int i=0; i<6; i++) { ENC1_CLOCK = LOW; ENC1_CLOCK = HIGH; } // skip these bits
-  ENC1_CLOCK = LOW; ENC1_CLOCK = HIGH;
+  for (int i=0; i<6; i++) { ENC1_CLOCK.low(); ENC1_CLOCK.high(); } // skip these bits
+  ENC1_CLOCK.low(); ENC1_CLOCK = HIGH;
   return pos;
 }
 int readENC2Fast() {
@@ -361,46 +350,88 @@ void doENC3LEDs(int v){
   }
 }
 
+// If this returns anything other than 0, there's parity error.
+unsigned int parity_check(unsigned int v){
+  //http://graphics.stanford.edu/~seander/bithacks.html#ParityNaive
+  v ^= v >> 16;
+  v ^= v >> 8;
+  v ^= v >> 4;
+  v &= 0xf;
+  return (0x6996 >> v) & 1;
+}
+
+unsigned int ENCITER = 0; // 0 = enc1, 2 = enc2, 4 = enc3
+bool WARMUP = true;
+unsigned int enc1 = 0, enc2 = 0, enc3 = 0;
 void loop() {
+  unsigned int ram1 = 0, ram2 = 0, ram1p = 0, ram2p = 0;
 #ifndef DEBUG
   mb.task();
 #endif
 #if defined(FAST)
-  int enc1 = readENC1Fast();
-  int enc2 = readENC2Fast();
-  int enc3 = readENC3Fast();
-#elif defined(SLOW)
-  int enc1 = readEncoderSlow(SENC1_CS, SENC1_CLOCK, SENC1_DATA);
-  int enc2 = readEncoderSlow(SENC2_CS, SENC2_CLOCK, SENC2_DATA);
-  int enc3 = readEncoderSlow(SENC3_CS, SENC3_CLOCK, SENC3_DATA);
+  if (ENCITER == 0) { enc1 = readENC1Fast(); }
+  if (ENCITER == 2) { enc2 = readENC2Fast(); }
+  if (ENCITER == 4) { enc3 = readENC3Fast(); }
 #elif defined(NORM)
-  int enc1 = readEncoder(SENC1_CS, SENC1_CLOCK, SENC1_DATA);
-  int enc2 = readEncoder(SENC2_CS, SENC2_CLOCK, SENC2_DATA);
-  int enc3 = readEncoder(SENC3_CS, SENC3_CLOCK, SENC3_DATA);
+  if (ENCITER == 0) { enc1 = readEncoder(SENC1_CS, SENC1_CLOCK, SENC1_DATA); }
+  if (ENCITER == 2) { enc2 = readEncoder(SENC2_CS, SENC2_CLOCK, SENC2_DATA); }
+  if (ENCITER == 4) { enc3 = readEncoder(SENC3_CS, SENC3_CLOCK, SENC3_DATA); }
 #endif
 
-//  Serial.print("Enc1: "); Serial.print((enc1& B00000110) > 0); Serial.print("Enc2: "); 
-//  Serial.print((enc2 & B00001110) > 0); Serial.print("Enc3: "); Serial.println((enc3 & B00001100) > 0);
+// RAM Control
+#ifndef DEBUG
+  //normal code
+  ram1 = mb.Hreg(RAM1_REG);
+  ram2 = mb.Hreg(RAM2_REG);
+  if (ram1 == 22 && ram2 == 22) {
+    // lockout RAM for 1s
+    RAMON = false;
+    exDAC1.setVoltage(0, false); exDAC2.setVoltage(0, false);
+    RAMCOOLTIME = millis();
+  }
+  if (RAMON) {
+    exDAC1.setVoltage(ram1, false);
+    exDAC2.setVoltage(ram2, false);
+  } else {
+    if (millis() - RAMCOOLTIME > RAMCOOLDURATION){
+      RAMON = true;
+    }
+    mb.Hreg(RAM1_REG, 0); mb.Hreg(RAM2_REG, 0);
+  }
+#else
+  // debug DAC code
+#endif
 
 #ifdef SERIALOUT
   Serial1.print("RAM1:"); Serial1.print(mb.Hreg(RAM1_REG)); Serial1.print("  RAM2:"); Serial1.println(mb.Hreg(RAM2_REG)); 
 #endif
 #ifdef MONITOR
-  if (MONSTEP < MONSKIP) { MONSTEP++; }
-  else {
-    Serial3.print(enc1); Serial3.print(" "); Serial3.print(enc2); Serial3.print(" "); Serial3.print(enc3); Serial3.print(" "); 
-    Serial3.print(mb.Hreg(RAM1_REG)); Serial3.print(" "); Serial3.println(mb.Hreg(RAM2_REG)); 
-    MONSTEP = 0;
+  if (!WARMUP) {
+    // check encoder extra bits.
+    unsigned int enc1e = enc1 & B011110;
+    unsigned int enc2e = enc2 & B011110;
+    unsigned int enc3e = enc3 & B011110;
+    if (parity_check(enc1)) {enc1e | 1;}
+    if (parity_check(enc2)) {enc2e | 1;}
+    if (parity_check(enc3)) {enc3e | 1;}
+    // add bit to error persistence
+    if (enc1e != ENCEXT) { ENC1EXT = enc1e | ENC1EXT; }
+    if (enc2e != ENCEXT) { ENC2EXT = enc2e | ENC2EXT; }
+    if (enc3e != ENCEXT) { ENC3EXT = enc3e | ENC3EXT; }
+    
+    // ENCITER 5 means all encoders have been read
+    if ((ENCITER == 5) && millis() - PREVTIMEOPS > MONTIME) {
+      // Debug format: enc1  enc2  enc3  ram1  ram2  ops ext1 ext2 ext3
+      //               BBBB BBBB BBBB BBBB BBBB OOO EE EE EE
+      Serial3.print(enc1, HEX); Serial3.print(" "); Serial3.print(enc2, HEX); Serial3.print(" "); Serial3.print(enc3, HEX); Serial3.print(" "); 
+      Serial3.print(mb.Hreg(RAM1_REG), HEX); Serial3.print(" "); Serial3.print(mb.Hreg(RAM2_REG), HEX); Serial3.print(" "); 
+      Serial3.print(PREVOPS, HEX); Serial3.print(" "); Serial3.print(ENC1EXT, HEX); Serial3.print(" "); Serial3.print(ENC2EXT, HEX);
+      Serial3.print(" "); Serial3.println(ENC3EXT, HEX);
+      PREVTIMEOPS = millis();
+    }
   }
 #endif
 
-#ifndef DEBUG
-  //normal code  
-  exDAC1.setVoltage(mb.Hreg(RAM1_REG), false);
-  exDAC2.setVoltage(mb.Hreg(RAM2_REG), false);
-#else
-  // debug DAC code
-#endif
   // LED update
   doENC1LEDs(enc1); doENC2LEDs(enc2); doENC3LEDs(enc3);
 
@@ -410,11 +441,19 @@ void loop() {
   Serial.print("Spin: ");Serial.println(!SPIN_BUTTON);  
 #else
   // set modbus data
-  mb.Ists(SPIN_STATUS, !SPIN_BUTTON);
-  mb.Ireg(MAINSH_REG, enc1);
-  mb.Ireg(TILL_REG, enc2);
-  mb.Ireg(HEEL_REG, enc3);
+  if (ENCITER == 5) { mb.Ists(SPIN_STATUS, !SPIN_BUTTON); }
+  // shift to omit extra encoder bits
+  if (ENCITER == 0) { mb.Ireg(MAINSH_REG, enc1 >> 6); } 
+  if (ENCITER == 2) { mb.Ireg(TILL_REG, enc2 >> 6); }
+  if (ENCITER == 4) { mb.Ireg(HEEL_REG, enc3 >> 6); }
 #endif
-  //printOps
   FLASH_ITER();
+  // encoder read cycle
+  ENCITER++;
+  if (ENCITER > 5) { ENCITER = 0; WARMUP = false; }
+  //ops calc
+  if (millis() - PREVTIME > OPSTIME){
+    PREVOPS = OPS; OPS = 0;
+    PREVTIME = millis();
+  } else { OPS++; }
 }
