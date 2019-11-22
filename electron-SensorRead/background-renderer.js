@@ -41,7 +41,7 @@ async function connect() {
       console.log("port opened:" + iport.comName);
       var data = await port.read(10);
       if (data === null) {
-        await sleep(200);
+        await sleep(1000);
         data = await port.read(10);
       }
       if (data !== null) {

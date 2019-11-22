@@ -108,6 +108,7 @@ function parity_check(v){
   return (0x6996 >>> v) & 1;
 }
 
+//arg [main, rudder, heel, ram1, ram2, ops, mainext, rudderext, heelext]
 ipcRenderer.on('arrayData', (event, arg) => {
 	// ops
 	var ops = arg[5];
@@ -119,10 +120,12 @@ ipcRenderer.on('arrayData', (event, arg) => {
 	// encoder and ex data
 	for (var x=0; x<3; x++) {
     // encoders
-    var t = arg[x] & 0b111110;
+    var t = arg[x] & 0b1111111111111110; //0b111110
     var parity = parity_check(arg[x]>>>0);
     t = t | parity;
-		DYNMAP[x].innerText = (t>>>0).toString(2);
+		//DYNMAP[x].innerText = (t>>>0).toString(2);
+    var n = (t>>>0).toString(2);
+    DYNMAP[x].innerText = "0000000000000000".substr(n.length) + n;
     // ex data
     var ta = arg[x+6]; //& 0b111111
 		STATICMAP[x].innerText = (ta>>>0).toString(2);
