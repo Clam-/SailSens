@@ -1,2 +1,12 @@
 libraries/
 Arduino/libraries/
+
+# All visual studio files that were added during testing
+*.suo
+.vs
+__vm
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+Release/

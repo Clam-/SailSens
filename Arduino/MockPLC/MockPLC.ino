@@ -46,7 +46,7 @@ unsigned int OPS = 0;
 unsigned int PREVOPS = 0;
 unsigned long PREVTIME = 0;
 unsigned long PREVTIMEOPS = 0;
-unsigned long MONTIME = 50;
+unsigned long MONTIME = 500;
 unsigned long OPSTIME = 1000;
 unsigned long DELAYPREV = 0;
 unsigned long DELAYTIME = 1;
@@ -244,7 +244,7 @@ void loop() {
  
   // encoder/spinnaker read cycle (with delay)
   if (true || millis() - DELAYPREV > DELAYTIME) {
-    DELAYPREV = millis();
+    //DELAYPREV = millis();
     if (STAGEITER == 0) { mb.Ists(SPIN_STATUS, !SPIN_BUTTON); } // Spinnaker update
     
     ENC1 = readEncoder(ENC1, STAGEITER, ENCBITITER, SENC1_CS, SENC1_CLOCK, SENC1_DATA);
