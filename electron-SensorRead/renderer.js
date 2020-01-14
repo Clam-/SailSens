@@ -130,10 +130,6 @@ ipcRenderer.on('arrayData', (event, arg) => {
     var ta = arg[x+6]; //& 0b111111
 		STATICMAP[x].innerText = (ta>>>0).toString(2);
 	}
-
-	// only update graphs every second cycle
-	if (COUNT < 2) { COUNT++; return;}
-	COUNT = 0;
 	for (var x = 0; x<5; x++) { // 5 dials
 		// shift encoders only
 		if (x<3) {CHARTS[x].series[0].points[0].update(arg[x]>>>6);}

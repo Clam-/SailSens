@@ -5,7 +5,6 @@
 //#define SERIALOUT
 #define MONITOR
 //#define FIRSTTIMESETUP
-#define NORM
 
 // #################################
 // INCLUDES, REQUIREMENTS
@@ -44,12 +43,12 @@ ModbusSerial mb;
 const unsigned int ENCEXT = B100000;
 unsigned int OPS = 0;
 unsigned int PREVOPS = 0;
-unsigned long PREVTIME = 0;
-unsigned long PREVTIMEOPS = 0;
-unsigned long MONTIME = 500;
-unsigned long OPSTIME = 1000;
+unsigned long PREVOPSTIME = 0;
+unsigned long PREVMONTIME = 0;
+unsigned long MONFREQ = 50;
+unsigned long OPSFREQ = 1000;
 unsigned long DELAYPREV = 0;
-unsigned long DELAYTIME = 1;
+unsigned long DELAYLENGTH = 1;
 unsigned long RAMCOOLTIME = 0;
 bool RAMON = true;
 unsigned long RAMCOOLDURATION = 1500;
@@ -88,25 +87,15 @@ GPIO<BOARD::D24>     ENC3_LED3;
 
 GPIO<BOARD::D13>     TEST_LED;
 
-// Encoder 1  MainSheet
-const int SENC1_CS = 4;      // Blue
-const int SENC1_DATA = 3;    // Orange
-const int SENC1_CLOCK = 2;   // Yellow
-// Encoder 2  Rudder
-const int SENC2_CS = 7;     // Blue
-const int SENC2_DATA = 6;    // Orange
-const int SENC2_CLOCK = 5;   // Yellow
-// Encoder 3  Heel
-const int SENC3_CS = 10;     // Blue
-const int SENC3_DATA = 9;   // Orange
-const int SENC3_CLOCK = 8;  // Yellow
-
-void initEncSlow(int csPin, int clkPin, int dPin) {
-  pinMode(csPin, OUTPUT);
-  pinMode(clkPin, OUTPUT);
-  pinMode(dPin, INPUT);
-  digitalWrite(clkPin, HIGH);
-  digitalWrite(csPin, LOW);
+void initEnc() {
+  // Set mode of encoder pins
+  ENC1_CS.output(); ENC2_CS.output(); ENC3_CS.output();
+  ENC1_CLOCK.output(); ENC2_CLOCK.output(); ENC3_CLOCK.output();
+  ENC1_DATA.input(); ENC2_DATA.input(); ENC3_DATA.input(); 
+  
+  // Set Encoder initial states
+  ENC1_CLOCK = HIGH; ENC2_CLOCK = HIGH; ENC3_CLOCK = HIGH; 
+  ENC1_CS = LOW;     ENC2_CS = LOW;     ENC3_CS = LOW;
 }
 
 void initLEDs() {
@@ -120,6 +109,7 @@ void initLEDs() {
 }
 
 void setup() {
+  Wire.setClock(400000);
 #ifdef SERIALOUT
   Serial1.begin(9600);
   Serial1.println("Connected "); 
@@ -146,34 +136,63 @@ void setup() {
 #else
   exDAC1.setVoltage(0, false); exDAC2.setVoltage(0, false);
 #endif
-  initEncSlow(SENC1_CS, SENC1_CLOCK, SENC1_DATA); // Init Encoder 1
-  initEncSlow(SENC2_CS, SENC2_CLOCK, SENC2_DATA); // Init Encoder 2
-  initEncSlow(SENC3_CS, SENC3_CLOCK, SENC3_DATA); // Init Encoder 3
+  initEnc();
 
   initLEDs();
   SPIN_BUTTON.input();
   TEST_LED.output();
-  PREVTIME = millis();
+  PREVOPSTIME = PREVMONTIME = DELAYPREV = millis();
 }
 
-unsigned int readEncoder(unsigned int pos, int cycle, int ibit, int csPin, int clkPin, int dPin) {
-  if (cycle == 0) { digitalWrite(csPin, HIGH); }
-  else if (cycle == 1) { digitalWrite(csPin, LOW); pos = 0; }
+unsigned int readEncoder1(unsigned int pos, int cycle, int ibit) {
+  if (cycle == 0) { ENC1_CS = HIGH; }
+  else if (cycle == 1) { ENC1_CS = LOW; pos = 0; }
   // fetch one bit
   else if (cycle >= 2 && cycle < 18) { 
-    if (ibit == 0) { digitalWrite(clkPin, LOW); }
-    else if (ibit == 1) { digitalWrite(clkPin, HIGH); }
+    if (ibit == 0) { ENC1_CLOCK = LOW; }
+    else if (ibit == 1) { ENC1_CLOCK = HIGH; }
     else if (ibit == 2) { 
-      pos = pos | digitalRead(dPin);
+      pos = pos | ENC1_DATA;
       if (cycle<17) { pos = pos << 1; } // shift every bit except last one.
     }
   }
   // trailing clock
-  else if (cycle == 18) {
-    digitalWrite(clkPin, LOW);
-  } else if (cycle == 19) {
-    digitalWrite(clkPin, HIGH);
+  else if (cycle == 18) { ENC1_CLOCK = LOW; } 
+  else if (cycle == 19) { ENC1_CLOCK = HIGH; }
+  return pos; // including extdata
+}
+unsigned int readEncoder2(unsigned int pos, int cycle, int ibit) {
+  if (cycle == 0) { ENC2_CS = HIGH; }
+  else if (cycle == 1) { ENC2_CS = LOW; pos = 0; }
+  // fetch one bit
+  else if (cycle >= 2 && cycle < 18) { 
+    if (ibit == 0) { ENC2_CLOCK = LOW; }
+    else if (ibit == 1) { ENC2_CLOCK = HIGH; }
+    else if (ibit == 2) { 
+      pos = pos | ENC2_DATA;
+      if (cycle<17) { pos = pos << 1; } // shift every bit except last one.
+    }
   }
+  // trailing clock
+  else if (cycle == 18) { ENC2_CLOCK = LOW; } 
+  else if (cycle == 19) { ENC2_CLOCK = HIGH; }
+  return pos; // including extdata
+}
+unsigned int readEncoder3(unsigned int pos, int cycle, int ibit) {
+  if (cycle == 0) { ENC3_CS = HIGH; }
+  else if (cycle == 1) { ENC3_CS = LOW; pos = 0; }
+  // fetch one bit
+  else if (cycle >= 2 && cycle < 18) { 
+    if (ibit == 0) { ENC3_CLOCK = LOW; }
+    else if (ibit == 1) { ENC3_CLOCK = HIGH; }
+    else if (ibit == 2) { 
+      pos = pos | ENC3_DATA;
+      if (cycle<17) { pos = pos << 1; } // shift every bit except last one.
+    }
+  }
+  // trailing clock
+  else if (cycle == 18) { ENC3_CLOCK = LOW; } 
+  else if (cycle == 19) { ENC3_CLOCK = HIGH; }
   return pos; // including extdata
 }
 
@@ -187,7 +206,7 @@ unsigned int parity_check(unsigned int v){
   return (0x6996 >> v) & 1;
 }
 
-void monitorData(unsigned int e1, unsigned int e2, unsigned int e3) {
+void monitorData(unsigned long millist, unsigned int e1, unsigned int e2, unsigned int e3) {
   // check encoder extra bits.
   unsigned int enc1e = e1 & B011110;
   unsigned int enc2e = e2 & B011110;
@@ -200,18 +219,17 @@ void monitorData(unsigned int e1, unsigned int e2, unsigned int e3) {
   if (enc2e != ENCEXT) { ENC2EXT = enc2e | ENC2EXT; }
   if (enc3e != ENCEXT) { ENC3EXT = enc3e | ENC3EXT; }
   
-  if (millis() - PREVTIMEOPS > MONTIME) {
+  if (millist - PREVMONTIME > MONFREQ) {
     // Debug format: enc1  enc2  enc3  ram1  ram2  ops ext1 ext2 ext3
     //               BBBB BBBB BBBB BBBB BBBB OOO EE EE EE
     Serial3.print(e1, HEX); Serial3.print(" "); Serial3.print(e2, HEX); Serial3.print(" "); Serial3.print(e3, HEX); Serial3.print(" "); 
     Serial3.print(mb.Hreg(RAM1_REG), HEX); Serial3.print(" "); Serial3.print(mb.Hreg(RAM2_REG), HEX); Serial3.print(" "); 
     Serial3.print(PREVOPS, HEX); Serial3.print(" "); Serial3.print(ENC1EXT, HEX); Serial3.print(" "); Serial3.print(ENC2EXT, HEX);
     Serial3.print(" "); Serial3.println(ENC3EXT, HEX);
-    PREVTIMEOPS = millis();
+    PREVMONTIME = millist;
+    
   }
 }
-
-
 
 unsigned int STAGEITER = 0; // Used to cycle though each encoder bit
 int ENCBITITER = 0; // Used to keep track of which phase of the bit fetch we are in (clock, or read)
@@ -219,6 +237,7 @@ bool WARMUP = true;
 unsigned int ENC1 = 0, ENC2 = 0, ENC3 = 0;
 
 void loop() {
+  unsigned long millist = millis();
   unsigned int ram1 = 0, ram2 = 0, ram1p = 0, ram2p = 0;
   // Process Modbus Comms.
   mb.task();
@@ -230,12 +249,12 @@ void loop() {
     // lockout RAM for 1s
     RAMON = false;
     exDAC1.setVoltage(0, false); exDAC2.setVoltage(0, false);
-    RAMCOOLTIME = millis();
+    RAMCOOLTIME = millist;
   }
   if (RAMON) {
     exDAC1.setVoltage(ram1, false); exDAC2.setVoltage(ram2, false);
   } else {
-    if (millis() - RAMCOOLTIME > RAMCOOLDURATION){
+    if (millist - RAMCOOLTIME > RAMCOOLDURATION){
       RAMON = true;
     }
     exDAC1.setVoltage(0, false); exDAC2.setVoltage(0, false);
@@ -243,13 +262,13 @@ void loop() {
   }
  
   // encoder/spinnaker read cycle (with delay)
-  if (true || millis() - DELAYPREV > DELAYTIME) {
+  if (true || millist - DELAYPREV > DELAYLENGTH) {
     //DELAYPREV = millis();
     if (STAGEITER == 0) { mb.Ists(SPIN_STATUS, !SPIN_BUTTON); } // Spinnaker update
     
-    ENC1 = readEncoder(ENC1, STAGEITER, ENCBITITER, SENC1_CS, SENC1_CLOCK, SENC1_DATA);
-    ENC2 = readEncoder(ENC2, STAGEITER, ENCBITITER, SENC2_CS, SENC2_CLOCK, SENC2_DATA);
-    ENC3 = readEncoder(ENC3, STAGEITER, ENCBITITER, SENC3_CS, SENC3_CLOCK, SENC3_DATA);
+    ENC1 = readEncoder1(ENC1, STAGEITER, ENCBITITER);
+    ENC2 = readEncoder2(ENC2, STAGEITER, ENCBITITER);
+    ENC3 = readEncoder3(ENC3, STAGEITER, ENCBITITER);
     
     if (STAGEITER < 2 || (STAGEITER >= 17 && STAGEITER < 20)) { STAGEITER++; } // Increment stage if not on 2
     else if (STAGEITER >= 2 && STAGEITER < 17) {
@@ -260,7 +279,7 @@ void loop() {
     else if (STAGEITER == 20) {
        // end of cycle
        if (!WARMUP) { 
-        monitorData(ENC1, ENC2, ENC3); // output monitor data
+        monitorData(millist, ENC1, ENC2, ENC3); // output monitor data
         // set encoder data to modbus registers
         mb.Ireg(MAINSH_REG, ENC1 >> 6);
         mb.Ireg(TILL_REG, ENC2 >> 6);
@@ -271,8 +290,8 @@ void loop() {
     }
   }
   //ops calc
-  if (millis() - PREVTIME > OPSTIME){
+  if (millist - PREVOPSTIME > OPSFREQ){
     PREVOPS = OPS; OPS = 0;
-    PREVTIME = millis();
+    PREVOPSTIME = millist;
   }
 }
