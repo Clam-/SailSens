@@ -5,6 +5,7 @@ const Readline = require('@serialport/parser-readline')
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+console.log("hi pls");
 
 function LOG(s) {
   ipcRenderer.send("log", s);
@@ -23,22 +24,18 @@ ipcRenderer.once('rendererID', (event, arg) => { rendererID = arg; });
 
 
 async function connect() {
-  var ports = null;
-  try { ports = await SerialPort.list(); }
-  catch (err) {
-    ipcRenderer.sendTo(rendererID, "logMsg", "List Error: " + err);
-  }
-  ipcRenderer.sendTo(rendererID, "logMsg", 'Ports: ' + ports.map(e => e.comName).join(","));
+  var ports = await SerialPort.list();
+  ipcRenderer.sendTo(rendererID, "logMsg", 'Ports: ' + (ports ? ports.map(e => e.path).join(","): ""));
   for (const iport of ports) {
-    ipcRenderer.sendTo(rendererID, "logMsg", 'Trying port: ' + iport.comName);
-    port = new SerialPort(iport.comName, {
+    ipcRenderer.sendTo(rendererID, "logMsg", 'Trying port: ' + iport.path);
+    port = new SerialPort(iport.path, {
       baudRate: 57600,
       autoOpen: false
     });
     try {
       await port.open();
       // port opened... attempt to get some data?
-      console.log("port opened:" + iport.comName);
+      console.log("port opened:" + iport.path);
       var data = await port.read(10);
       if (data === null) {
         await sleep(1000);
@@ -46,10 +43,10 @@ async function connect() {
       }
       if (data !== null) {
         // successfull connect and get data
-        ipcRenderer.sendTo(rendererID, "logMsg", "Connected to: " + iport.comName);
+        ipcRenderer.sendTo(rendererID, "logMsg", "Connected to: " + iport.path);
         return port;
       }
-      ipcRenderer.sendTo(rendererID, "logMsg", "Timeout on: " + iport.comName);
+      ipcRenderer.sendTo(rendererID, "logMsg", "Timeout on: " + iport.path);
       port.close();
     } catch (err) {
       console.log("CAUGHT ERR:" + err);
@@ -57,6 +54,13 @@ async function connect() {
     }
   }
   return null;
+}
+
+async function aconnect() {
+  SerialPort.list().then(
+    ports => ports.forEach(console.log),
+    err => console.error(err)
+  );
 }
 
 function processData(chunk) {

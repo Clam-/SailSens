@@ -1,6 +1,9 @@
 const electron = require('electron')
 // Module to control application life.
 const app = electron.app
+
+app.allowRendererProcessReuse = false;
+
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 const {ipcMain} = require('electron')
@@ -15,7 +18,12 @@ let backgroundWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 1280, height: 720})
+  mainWindow = new BrowserWindow({width: 1280, height: 720, webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      nodeIntegrationInSubFrames: true,
+      nodeIntegrationInWorker: true
+    }})
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
@@ -37,7 +45,10 @@ function createWindow () {
   })
 
   // Create backgroundworker
-  backgroundWindow = new BrowserWindow({show: false});
+  backgroundWindow = new BrowserWindow({show: false, webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }});
   backgroundWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'backgroundWindow.html'),
     protocol: 'file:',
@@ -46,6 +57,7 @@ function createWindow () {
   backgroundWindow.webContents.on('did-finish-load', () => {
     backgroundWindow.webContents.send('rendererID', mainWindow.webContents.id);
   });
+  //backgroundWindow.webContents.openDevTools();
 }
 
 ipcMain.on('log', (event, arg) => {
