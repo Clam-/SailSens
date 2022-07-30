@@ -12,7 +12,7 @@
 #include <Wire.h>
 
 #include <Modbus.h>
-#include <ModbusSerial.h> 
+#include <ModbusSerial.h>
 // https://github.com/Clam-/modbus-arduino Modified from https://github.com/epsilonrt/modbus-arduino
 
 #include <Adafruit_MCP4725.h>
@@ -91,10 +91,10 @@ void initEnc() {
   // Set mode of encoder pins
   ENC1_CS.output(); ENC2_CS.output(); ENC3_CS.output();
   ENC1_CLOCK.output(); ENC2_CLOCK.output(); ENC3_CLOCK.output();
-  ENC1_DATA.input(); ENC2_DATA.input(); ENC3_DATA.input(); 
-  
+  ENC1_DATA.input(); ENC2_DATA.input(); ENC3_DATA.input();
+
   // Set Encoder initial states
-  ENC1_CLOCK = HIGH; ENC2_CLOCK = HIGH; ENC3_CLOCK = HIGH; 
+  ENC1_CLOCK = HIGH; ENC2_CLOCK = HIGH; ENC3_CLOCK = HIGH;
   ENC1_CS = LOW;     ENC2_CS = LOW;     ENC3_CS = LOW;
 }
 
@@ -112,11 +112,11 @@ void setup() {
   Wire.setClock(400000);
 #ifdef SERIALOUT
   Serial1.begin(9600);
-  Serial1.println("Connected "); 
+  Serial1.println("Connected ");
 #endif
 #ifdef MONITOR
-  Serial3.begin(57600);
-  //Serial3.println("Opened Serial3."); 
+  Serial.begin(57600);
+  //Serial.println("Opened Serial3.");
 #endif
 
 #ifndef DEBUG
@@ -125,7 +125,7 @@ void setup() {
   mb.addIsts(SPIN_STATUS, false);
   mb.addHreg(RAM1_REG); mb.addHreg(RAM2_REG);
   mb.addIreg(MAINSH_REG); mb.addIreg(TILL_REG); mb.addIreg(HEEL_REG);
-  mb.addIreg(0); mb.addIreg(1);  
+  mb.addIreg(0); mb.addIreg(1);
 #endif
   // For Adafruit MCP4725A1 the address is 0x62 (default) or 0x63 (ADDR pin tied to VCC)
   // For MCP4725A0 the address is 0x60 or 0x61
@@ -148,16 +148,16 @@ unsigned int readEncoder1(unsigned int pos, int cycle, int ibit) {
   if (cycle == 0) { ENC1_CS = HIGH; }
   else if (cycle == 1) { ENC1_CS = LOW; pos = 0; }
   // fetch one bit
-  else if (cycle >= 2 && cycle < 18) { 
+  else if (cycle >= 2 && cycle < 18) {
     if (ibit == 0) { ENC1_CLOCK = LOW; }
     else if (ibit == 1) { ENC1_CLOCK = HIGH; }
-    else if (ibit == 2) { 
+    else if (ibit == 2) {
       pos = pos | ENC1_DATA;
       if (cycle<17) { pos = pos << 1; } // shift every bit except last one.
     }
   }
   // trailing clock
-  else if (cycle == 18) { ENC1_CLOCK = LOW; } 
+  else if (cycle == 18) { ENC1_CLOCK = LOW; }
   else if (cycle == 19) { ENC1_CLOCK = HIGH; }
   return pos; // including extdata
 }
@@ -165,16 +165,16 @@ unsigned int readEncoder2(unsigned int pos, int cycle, int ibit) {
   if (cycle == 0) { ENC2_CS = HIGH; }
   else if (cycle == 1) { ENC2_CS = LOW; pos = 0; }
   // fetch one bit
-  else if (cycle >= 2 && cycle < 18) { 
+  else if (cycle >= 2 && cycle < 18) {
     if (ibit == 0) { ENC2_CLOCK = LOW; }
     else if (ibit == 1) { ENC2_CLOCK = HIGH; }
-    else if (ibit == 2) { 
+    else if (ibit == 2) {
       pos = pos | ENC2_DATA;
       if (cycle<17) { pos = pos << 1; } // shift every bit except last one.
     }
   }
   // trailing clock
-  else if (cycle == 18) { ENC2_CLOCK = LOW; } 
+  else if (cycle == 18) { ENC2_CLOCK = LOW; }
   else if (cycle == 19) { ENC2_CLOCK = HIGH; }
   return pos; // including extdata
 }
@@ -182,16 +182,16 @@ unsigned int readEncoder3(unsigned int pos, int cycle, int ibit) {
   if (cycle == 0) { ENC3_CS = HIGH; }
   else if (cycle == 1) { ENC3_CS = LOW; pos = 0; }
   // fetch one bit
-  else if (cycle >= 2 && cycle < 18) { 
+  else if (cycle >= 2 && cycle < 18) {
     if (ibit == 0) { ENC3_CLOCK = LOW; }
     else if (ibit == 1) { ENC3_CLOCK = HIGH; }
-    else if (ibit == 2) { 
+    else if (ibit == 2) {
       pos = pos | ENC3_DATA;
       if (cycle<17) { pos = pos << 1; } // shift every bit except last one.
     }
   }
   // trailing clock
-  else if (cycle == 18) { ENC3_CLOCK = LOW; } 
+  else if (cycle == 18) { ENC3_CLOCK = LOW; }
   else if (cycle == 19) { ENC3_CLOCK = HIGH; }
   return pos; // including extdata
 }
@@ -218,16 +218,16 @@ void monitorData(unsigned long millist, unsigned int e1, unsigned int e2, unsign
   if (enc1e != ENCEXT) { ENC1EXT = enc1e | ENC1EXT; }
   if (enc2e != ENCEXT) { ENC2EXT = enc2e | ENC2EXT; }
   if (enc3e != ENCEXT) { ENC3EXT = enc3e | ENC3EXT; }
-  
-  if (millist - PREVMONTIME > MONFREQ) {
+
+  if (((millist - PREVMONTIME) > MONFREQ) && (Serial.availableForWrite() > 120)) {
     // Debug format: enc1  enc2  enc3  ram1  ram2  ops ext1 ext2 ext3
     //               BBBB BBBB BBBB BBBB BBBB OOO EE EE EE
-    Serial3.print(e1, HEX); Serial3.print(" "); Serial3.print(e2, HEX); Serial3.print(" "); Serial3.print(e3, HEX); Serial3.print(" "); 
-    Serial3.print(mb.Hreg(RAM1_REG), HEX); Serial3.print(" "); Serial3.print(mb.Hreg(RAM2_REG), HEX); Serial3.print(" "); 
-    Serial3.print(PREVOPS, HEX); Serial3.print(" "); Serial3.print(ENC1EXT, HEX); Serial3.print(" "); Serial3.print(ENC2EXT, HEX);
-    Serial3.print(" "); Serial3.println(ENC3EXT, HEX);
-    PREVMONTIME = millist;
-    
+      Serial.print(e1, HEX); Serial.print(" "); Serial.print(e2, HEX); Serial.print(" "); Serial.print(e3, HEX); Serial.print(" ");
+      Serial.print(mb.Hreg(RAM1_REG), HEX); Serial.print(" "); Serial.print(mb.Hreg(RAM2_REG), HEX); Serial.print(" ");
+      Serial.print(PREVOPS, HEX); Serial.print(" "); Serial.print(ENC1EXT, HEX); Serial.print(" "); Serial.print(ENC2EXT, HEX);
+      Serial.print(" "); Serial.println(ENC3EXT, HEX);
+      PREVMONTIME = millist;
+    }
   }
 }
 
@@ -260,16 +260,16 @@ void loop() {
     exDAC1.setVoltage(0, false); exDAC2.setVoltage(0, false);
     mb.Hreg(RAM1_REG, 0); mb.Hreg(RAM2_REG, 0);
   }
- 
+
   // encoder/spinnaker read cycle (with delay)
   if (true || millist - DELAYPREV > DELAYLENGTH) {
     //DELAYPREV = millis();
     if (STAGEITER == 0) { mb.Ists(SPIN_STATUS, !SPIN_BUTTON); } // Spinnaker update
-    
+
     ENC1 = readEncoder1(ENC1, STAGEITER, ENCBITITER);
     ENC2 = readEncoder2(ENC2, STAGEITER, ENCBITITER);
     ENC3 = readEncoder3(ENC3, STAGEITER, ENCBITITER);
-    
+
     if (STAGEITER < 2 || (STAGEITER >= 17 && STAGEITER < 20)) { STAGEITER++; } // Increment stage if not on 2
     else if (STAGEITER >= 2 && STAGEITER < 17) {
       // If stage 2-16 we want to cycle through the bitphase before going to next stage.
@@ -278,7 +278,7 @@ void loop() {
     }
     else if (STAGEITER == 20) {
        // end of cycle
-       if (!WARMUP) { 
+       if (!WARMUP) {
         monitorData(millist, ENC1, ENC2, ENC3); // output monitor data
         // set encoder data to modbus registers
         mb.Ireg(MAINSH_REG, ENC1 >> 6);
