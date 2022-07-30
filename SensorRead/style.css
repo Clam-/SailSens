@@ -1,0 +1,51 @@
+
+body {
+  background: #fff;
+  font-family: Helvetica, sans-serif;
+}
+.ggauge {
+    height: 300px;
+}
+
+.column-33 {
+  padding: 0 !important ;
+}
+
+div#ops {
+  font-size: xx-large;
+/*  line-height: 0; */
+}
+
+h3 {
+  margin: 0;
+}
+div#footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 120px;
+  line-height: 1.0;
+}
+pre {
+  max-height: 120px;
+  height: auto;
+  margin-top: 0;
+  overflow: auto;
+}
+
+.fixedwidth {
+  font-family: monospace;
+  font-size: x-large;
+}
+
+rect.highcharts-background {
+  fill: rgba(0, 0, 0, 0);
+}
+text.highcharts-credits {
+  display: none !important;
+}
+
+textarea {
+  width:100%;
+  height:100%;
+}

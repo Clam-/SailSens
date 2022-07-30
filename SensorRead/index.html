@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Sensor Display</title>
+    <!-- CSS Reset -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+    <!-- Milligram CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <link rel="stylesheet" type="text/css" href="./style.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="column column-33"><div id="mainsheet" class="ggauge"></div></div>
+        <div class="column column-33"><div id="heel" class="ggauge"></div></div>
+        <div class="column column-33"><div id="rudder" class="ggauge"></div></div>
+      </div>
+      <div class="row">
+        <div class="column"></div>
+        <div class="column column-33"><div id="ram1" class="ggauge"></div></div>
+        <div class="column column-33"><div id="ram2" class="ggauge"></div></div>
+        <div class="column"></div>
+      </div>
+      <div class="row">
+        <div id="ops"><p>OPS: <span id=opsval>0</span> (<span id=opsmin>0</span>/<span id=opsmax>0</span>)</div>
+      </div>
+      <div id="footer"><pre id="logbox"></pre></div>
+    </div>
+  </body>
+  <script type="module" src="start.js"></script>
+</html>
