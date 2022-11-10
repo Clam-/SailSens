@@ -9,7 +9,7 @@
     "rebuild": "electron-rebuild -f -w serialport"
   },
   "devDependencies": {
-    "electron": "^13.5.2",
+    "electron": "^18.3.7",
     "electron-rebuild": "^3.2.3"
   },
   "dependencies": {
