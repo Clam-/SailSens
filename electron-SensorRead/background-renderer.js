@@ -36,10 +36,13 @@ async function connect() {
       await port.open();
       // port opened... attempt to get some data?
       console.log("port opened:" + iport.path);
+      ipcRenderer.sendTo(rendererID, "logMsg", "port opened:" + iport.path);
       var data = await port.read(10);
-      if (data === null) {
-        await sleep(1000);
+      var count = 0;
+      while (data === null && count < 200) {
         data = await port.read(10);
+        count++;
+        await sleep(10);
       }
       if (data !== null) {
         // successfull connect and get data
